@@ -1,6 +1,6 @@
-# Underwater Train Driver — Abyssline 04
+# Abyssline 04 — Underwater Train Driver
 
-A single-page, scroll-driven cinematic website introducing a future career: **Underwater Train Driver**. Scrolling acts as the train's throttle along one continuous camera shot—from the dark calm boarding tunnel, through sunlit reefs, inside the holographic driver's cab, past emerald kelp forests, through a sunken city arch, into the 380m bioluminescent glow zone, and up to the glass-dome arrival terminal.
+A single-page, scroll-driven cinematic website introducing a future career: **Underwater Train Driver**. The provided cinematic video is the visual backbone of the site—code renders only typography, glass HUD, interactive overlays, particles, transitions, and optional audio.
 
 ---
 
@@ -10,60 +10,56 @@ A single-page, scroll-driven cinematic website introducing a future career: **Un
 # 1. Install dependencies
 npm install
 
-# 2. (Optional) Re-slice storyboard grid into WebP & AVIF chapter plates
-npm run prepare:assets
-
-# 3. Start development server
+# 2. Start local dev server
 npm run dev
 
-# 4. Build production bundle
+# 3. Typecheck + build production bundle
 npm run build
+
+# 4. Preview production build
+npm run preview
 ```
 
-> **Note on Windows PowerShell:** If `npm` is blocked by execution policy, use `npm.cmd run dev`.
+> **Windows PowerShell note:** If `npm` script execution is restricted, use `npm.cmd run dev` / `npm.cmd run build`.
 
 ---
 
-## Architecture Overview
+## Deploying to Vercel
 
-### Continuous 6-Layer Stage (`index.html` & `src/styles/main.css`)
-- `layer-bg` — Interpolated water-depth gradient + lazy-loaded `.avif`/`.webp` chapter plates (only `current + 1` chapter is preloaded).
-- `layer-rays` — Volumetric light beams and water caustic shimmer.
-- `layer-mid` — Midground parallax landmarks, coral terraces, fish school (scatters & regathers), kelp, sunken city back-arch, whale shark, lantern jellyfish, and glass-dome terminal (`0.55x` scroll speed).
-- `layer-track` — Continuous glowing aqua magnetic guideway with velocity-reactive energy pulses.
-- `layer-train` — Pearl-white 5-car aerodynamic bullet train (teardrop nose, panoramic cockpit, aqua/pink light strips, amber oval windows, hover skids, spinning rear turbine rotor & bubble plume) + `layer-cab` signature iris-zoom driver POV.
-- `layer-fg` — Foreground kelp blades and Sunken City pass-through pillar (`1.38x` scroll speed) + 60fps HTML5 Canvas particle, bubble, and speed-streak engine (`src/canvas/particleEngine.js`).
+This repository is ready for zero-config Vercel deployment (`vercel.json` sets `npm run build`, `dist` output, and immutable caching headers for `/assets/frames/*`, `/assets/video/*`, and `/assets/chapters/*`).
 
-### Libraries
-- **GSAP + ScrollTrigger** — Scrubbed master timeline, chapter color/depth interpolation, split-text mask reveals, and signature Cab POV iris transition (`src/scene/timeline.js`).
-- **Lenis** — Inertial smooth scrolling synced to `gsap.ticker`, driving velocity-reactive bubbles, thruster plumes, light streaks, and optional procedural Web Audio (`src/audio/oceanAudio.js`).
-- **Vite** — Lightweight ES module bundler.
+1. Push to GitHub (`main`).
+2. Import the repository at [vercel.com/new](https://vercel.com/new) (Framework Preset: **Vite**).
+3. Deploy — `tsc --noEmit && vite build` outputs `dist/`.
 
 ---
 
-## Swapping Assets & Editing Copy
+## Architecture & Scrubbing Strategy
 
-### 1. Swap Images, Train Sprites, or Video
-Open [`src/config/assets.js`](src/config/assets.js):
-- **Per-chapter backdrops:** Update `ASSETS.chapters.<chapterId>.avif` / `.webp` (or point to your own generated assets in `public/assets/chapters/`).
-- **Custom train sprite:** Set `ASSETS.train.sideImage` from `null` to e.g. `'/assets/my-train.webp'` to replace the built-in vector bullet train.
-- **Cab backdrop:** Update `ASSETS.train.cabBackdrop.avif` / `.webp` (the animated SVG holographic gauges stay layered cleanly on top).
-- **Concept film:** Update `ASSETS.conceptVideo.mp4` (lazy-loaded only when the user opens **Concept Film**).
-
-### 2. Edit Headlines, Copy & Hotspots
-Open [`src/config/chapters.js`](src/config/chapters.js):
-- Change `headline`, `body`, `highlightQuote`, or `recapStats` for any chapter (`0`–`7`).
-- Add, remove, or reposition interactive creature/landmark tooltips in `hotspots: [{ id, x, y, title, fact }]` (`x`/`y` are viewport percentages).
+- **Stack:** Vite + TypeScript, **GSAP + ScrollTrigger**, **Lenis**, Web Audio API, and an overlay-only 2D `<canvas>` (`src/canvas/fxCanvas.ts`).
+- **Two Scrubbing Engines (`SITE_CONFIG.playbackEngine` in `src/config/siteConfig.ts`):**
+  1. **`frames` (Default — Chosen):** Progressive WebP frame sequences extracted from a 48fps `ffmpeg minterpolate` optical-flow pass (`desktop`: 1600×900 @ 318 frames, `laptop`: 1280×720 @ 239 frames, `mobile`: 960×540 @ 159 frames). Decoded via `createImageBitmap` so **both forward and backward scrubbing run in < 16ms** with sub-frame alpha blending, cut light-blooms, and per-chapter mobile `focalX` framing. The headlight preloader unlocks as soon as Chapters 0 + 1 are decoded while Chapters 2–7 stream progressively in the background.
+  2. **`video` (Optional):** All-keyframe H.264 (`-g 1`, 48fps) MP4 (`public/assets/video/abyssline-48fps-g1.mp4`) scrubbed via `video.currentTime` inside `requestAnimationFrame`.
+- **Signature Cab Interlude (Chapter 3):** Circular iris reveal into `SITE_CONFIG.cabMedia` (accepts either an image or video clip) layered with live holographic telemetry UI (Water Pressure bar, Depth, rotating Sonar sweep, Hull Integrity segments, tilting Throttle indicator, robot tip bubble, and 4 interactive hotspots).
 
 ---
 
-## What to Tune
+## Single Config File: `src/config/siteConfig.ts`
 
-| Setting | Where to Find It | Effect |
+Everything is configurable in one typed file ([src/config/siteConfig.ts](src/config/siteConfig.ts)):
+
+| What to Change | Config Path | Notes |
 | --- | --- | --- |
-| **Chapter scroll length** | `scrollVh` in `src/config/chapters.js` | Controls how long (`115vh`–`150vh`) each chapter lasts while scrolling. |
-| **Depth & pressure curves** | `depthStart` / `depthEnd` & `pressureStart` / `pressureEnd` in `src/config/chapters.js` | Adjusts side depth meter & cab ATM gauge interpolation. |
-| **Chapter water colors** | `palette` (`top`, `mid`, `bottom`, `rayOpacity`, `vignette`, `accent`) in `src/config/chapters.js` | Tunes water gradient, volumetric ray intensity, and accent hue per zone. |
-| **World parallax speed** | `worldWidth`, `midX`, `fgX` in `src/scene/timeline.js` | Changes horizontal travel distance and foreground `1.38x` depth separation. |
-| **Scroll inertia & velocity** | `duration` / `wheelMultiplier` in `Lenis` (`src/scene/timeline.js`) | Adjusts how weighty or snappy the throttle feels. |
-| **Bubble & star density** | `ParticleEngine` in `src/canvas/particleEngine.js` | Tunes mote count, turbine bubble rate, and velocity streak threshold. |
+| **Swap frame tiers / playback mode** | `SITE_CONFIG.playbackEngine`, `SITE_CONFIG.tiers` | Switch between `'frames'` and `'video'`, or point `tiers` to new frame folders. |
+| **Swap main video / Concept Film** | `SITE_CONFIG.videoSources` | Set `scrub48fpsG1` and `conceptFilmMp4`. |
+| **Swap Cab Interior (image or video)** | `SITE_CONFIG.cabMedia` | Set `type: 'image'` (`imageAvif`/`imageWebp`) or `type: 'video'` (`videoMp4`). |
+| **Edit chapter copy & timestamps** | `SITE_CONFIG.chapters` | Edit `headline`, `body`, `fact`, `videoStart`, `videoEnd`, `textSide`, `focalX`, `depthRange`, `pressureRange`, and `colorGrade`. |
+| **Tune scroll length & feel** | `SITE_CONFIG.scrollMultiplier`, `SITE_CONFIG.scrubLerp`, `chapter.dwell` | `scrollMultiplier` scales total `~1035vh` length; `scrubLerp` (`0.08–0.12`) tunes throttle inertia; `dwell` slows mid-chapter reading. |
+| **Tune particles & audio** | `SITE_CONFIG.particleDensity`, `SITE_CONFIG.audio` | Adjust bubble/dust count or plug in an external `oceanTrackUrl`. |
+| **Edit Cadet Quiz** | `SITE_CONFIG.quizQuestions`, `SITE_CONFIG.recapFacts` | Update questions, answers, and arrival recap items. |
+
+---
+
+## QA Screenshots
+
+Verified desktop (`1440×900`) and mobile (`390×844`) chapter captures are archived in [`docs/qa/`](docs/qa/).
