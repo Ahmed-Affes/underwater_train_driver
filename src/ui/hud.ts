@@ -368,9 +368,9 @@ export class HudController {
           this.fxCanvas.emitCelebrationBurst();
           resultEl.innerHTML = `
             <div class="cadet-pass-card">
-              <span class="pass-badge">BREVET D'APPRENTI CONDUCTEUR // VALIDÉ</span>
-              <strong>3/3 bonnes réponses — Prêt pour le simulateur Secteur 04</strong>
-              <p>Maîtrise des trois métiers, réflexe d'urgence sous-marine et parcours complet validés.</p>
+              <span class="pass-badge">PROFIL VALIDÉ // CONDUCTEUR SOUS-MARIN</span>
+              <strong>3/3 bonnes réponses — Tu as les bons réflexes !</strong>
+              <p>Maîtrise des trois savoir-faire, sang-froid en cas d'alerte et connaissance de la formation confirmés.</p>
             </div>
           `;
         } else {

@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Abyssline 04 — Conducteur de train sous-marin</title>
+  <title>Conducteur de train sous-marin — Un métier du futur</title>
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%23031520' stroke='%2322d3ee' stroke-width='3'/><circle cx='16' cy='16' r='5' fill='%23fbbf24'/></svg>" />
   <meta name="description"
-    content="Découvre le métier du futur : conducteur de train sous-marin. Fais défiler la page pour piloter un train magnétique au fond de l'océan." />
+    content="Découvre le métier du futur : conducteur de train sous-marin. Rôle, quotidien en cabine, compétences, formation, avantages et défis." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -17,22 +17,22 @@
 </head>
 
 <body>
-  <a class="skip-link" href="#scroll-track">Aller au récit du voyage</a>
+  <a class="skip-link" href="#scroll-track">Aller à la présentation du métier</a>
 
   <!-- Préchargeur Phare du train -->
-  <div id="loader" role="status" aria-label="Chargement du voyage sous-marin">
+  <div id="loader" role="status" aria-label="Chargement de la présentation du métier">
     <div class="loader-inner">
       <div class="loader-headlights" aria-hidden="true">
         <span class="loader-beam beam-left"></span>
         <span class="loader-beam beam-right"></span>
         <span class="loader-nose-pill"></span>
       </div>
-      <p class="loader-title">ABYSSLINE // SECTEUR 04</p>
+      <p class="loader-title">MÉTIER DU FUTUR // CONDUCTEUR SOUS-MARIN</p>
       <div class="loader-bar-track" aria-hidden="true">
         <div id="loader-progress-fill" class="loader-bar-fill"></div>
       </div>
       <p class="loader-status">
-        <span>Mise sous tension du rail magnétique</span>
+        <span>Chargement du voyage de découverte du métier</span>
         <span id="loader-pct">0%</span>
       </p>
     </div>
@@ -62,20 +62,20 @@
   <header class="top-hud">
     <div class="brand-badge">
       <span class="brand-dot" aria-hidden="true"></span>
-      <span class="brand-name">ABYSSLINE</span>
+      <span class="brand-name">MÉTIER DU FUTUR</span>
       <span class="brand-sep" aria-hidden="true">//</span>
-      <span class="brand-line">SECTEUR 04</span>
+      <span class="brand-line">CONDUCTEUR SOUS-MARIN</span>
     </div>
 
     <div class="top-controls">
       <button type="button" id="open-dossier-btn" class="hud-pill-btn">
         <span aria-hidden="true">≡</span>
-        <span>Dossier complet</span>
+        <span>Fiche métier</span>
       </button>
 
       <button type="button" id="open-film-btn" class="hud-pill-btn">
         <span aria-hidden="true">▶</span>
-        <span>Vidéo 4K complète</span>
+        <span>Voir la vidéo</span>
       </button>
 
       <button type="button" id="sound-toggle-btn" class="hud-pill-btn" aria-pressed="false">
@@ -157,10 +157,10 @@
       <button type="button" id="close-training-modal" class="modal-close" aria-label="Fermer le test d'aptitude">
         ✕
       </button>
-      <span class="kicker-code">ACADÉMIE ABYSSLINE // TEST D'APTITUDE</span>
-      <h2 id="training-modal-title" class="modal-heading">Vérification avant départ</h2>
+      <span class="kicker-code">QUIZ MÉTIER // CONDUCTEUR SOUS-MARIN</span>
+      <h2 id="training-modal-title" class="modal-heading">As-tu les réflexes du métier ?</h2>
       <p class="modal-intro">
-        Réponds à ces trois questions issues du parcours pour obtenir ton brevet d’apprenti conducteur.
+        Réponds à ces trois questions sur le rôle, la sécurité et la formation du conducteur sous-marin.
       </p>
 
       <form id="training-check-form" class="training-form">
@@ -172,19 +172,19 @@
     </div>
   </div>
 
-  <!-- Fenêtre Vidéo 4K complète -->
+  <!-- Fenêtre Vidéo complète -->
   <div id="video-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="video-modal-title"
     aria-hidden="true">
     <div class="modal-card video-modal-card">
       <button type="button" id="close-video-modal" class="modal-close" aria-label="Fermer la vidéo complète">
         ✕
       </button>
-      <span class="kicker-code">FILM COMPLET 4K // TRAJET INTÉGRAL</span>
-      <h2 id="video-modal-title" class="modal-heading">Abyssline 04 — Traversée sous-marine</h2>
+      <span class="kicker-code">TRAJET COMPLET // UNIVERS DU CONDUCTEUR</span>
+      <h2 id="video-modal-title" class="modal-heading">Le trajet du conducteur sous-marin</h2>
       <video id="concept-video-player" class="concept-video" controls playsinline preload="none"></video>
       <p class="video-caption-note">
-        Vidéo originale intégrale : départ du tunnel, récif, poste de pilotage, arche engloutie, zone abyssale, approche
-        du dôme, quai des passagers et sortie vers le large.
+        Traversée intégrale illustrant le parcours d'un conducteur sous-marin : départ du tunnel, récif, poste de
+        pilotage, arche engloutie, grands fonds, approche du dôme, quai des passagers et sortie vers le large.
       </p>
     </div>
   </div>
