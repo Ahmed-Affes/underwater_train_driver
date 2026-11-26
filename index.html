@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Underwater Train Driver — Abyssline 04</title>
+    <meta
+      name="description"
+      content="Scroll to pilot a futuristic underwater maglev train from sunlit reefs to the bioluminescent trench. Explore the future career of an Underwater Train Driver."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#scroll-track">Skip to journey story</a>
+
+    <!-- Train Headlight Preloader -->
+    <div id="loader" role="status" aria-label="Loading underwater train experience">
+      <div class="loader-inner">
+        <div class="loader-headlights" aria-hidden="true">
+          <span class="loader-beam beam-left"></span>
+          <span class="loader-beam beam-right"></span>
+          <span class="loader-nose-pill"></span>
+        </div>
+        <p class="loader-title">ABYSSLINE // 04</p>
+        <div class="loader-bar-track" aria-hidden="true">
+          <div id="loader-progress-fill" class="loader-bar-fill"></div>
+        </div>
+        <p class="loader-status">
+          <span>Energizing magnetic rail</span>
+          <span id="loader-pct">0%</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Fixed 100vw x 100vh Continuous Camera Stage -->
+    <div id="stage" aria-hidden="false">
+      <!-- Layer 1: Far Ocean Background + Lazy-Loaded Chapter Artwork -->
+      <div id="layer-bg" class="scene-layer layer-bg">
+        <div class="ocean-gradient"></div>
+        <div id="bg-plates" class="bg-plates"></div>
+      </div>
+
+      <!-- Layer 2: Volumetric Light Rays & Gentle Caustics -->
+      <div id="layer-rays" class="scene-layer layer-rays" aria-hidden="true">
+        <div class="light-ray ray-1"></div>
+        <div class="light-ray ray-2"></div>
+        <div class="light-ray ray-3"></div>
+        <div class="caustic-shimmer"></div>
+      </div>
+
+      <!-- Layer 3: Midground World Landmarks & Marine Creatures -->
+      <div id="layer-mid" class="scene-layer layer-mid">
+        <div id="world-mid" class="world-strip"></div>
+      </div>
+
+      <!-- Layer 4: Continuous Glowing Magnetic Track -->
+      <div id="layer-track" class="scene-layer layer-track" aria-hidden="true">
+        <div class="maglev-pylons"></div>
+        <div class="maglev-rail-glow"></div>
+        <div class="maglev-rail-core"></div>
+        <div id="track-pulses" class="maglev-pulses"></div>
+      </div>
+
+      <!-- Layer 5: Hero Bullet Train (5-car aerodynamic maglev) -->
+      <div id="layer-train" class="scene-layer layer-train"></div>
+
+      <!-- Layer 5b: Signature Chapter 3 Cab POV Interior + Holographic HUD -->
+      <div id="layer-cab" class="scene-layer layer-cab" aria-hidden="true"></div>
+
+      <!-- Layer 6: Foreground Silhouettes, Pass-Through Arch & 60fps Particle Canvas -->
+      <div id="layer-fg" class="scene-layer layer-fg">
+        <div id="world-fg" class="world-strip"></div>
+        <canvas id="particle-canvas"></canvas>
+      </div>
+
+      <!-- Interactive Creature & Landmark Hotspots -->
+      <div id="hotspots-layer" class="hotspots-layer"></div>
+
+      <!-- Depth Haze & Vignette -->
+      <div id="layer-vignette" class="scene-layer layer-vignette" aria-hidden="true"></div>
+    </div>
+
+    <!-- Persistent Driver HUD -->
+    <header id="top-hud" class="top-hud">
+      <div class="brand-badge">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span class="brand-name">ABYSSLINE</span>
+        <span class="brand-line">SECTOR 04</span>
+      </div>
+
+      <div class="top-controls">
+        <button type="button" id="open-film-btn" class="hud-pill-btn">
+          <span class="pill-icon" aria-hidden="true">▶</span>
+          <span>Concept Film</span>
+        </button>
+
+        <button
+          type="button"
+          id="sound-toggle-btn"
+          class="hud-pill-btn"
+          aria-pressed="false"
+        >
+          <span class="sound-bars" aria-hidden="true">
+            <i></i><i></i><i></i>
+          </span>
+          <span class="sound-label">Ocean Audio: Off</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mini Route Map Navigation -->
+    <nav class="route-map" aria-label="Ocean train stations">
+      <ol id="route-map-list" class="route-map-list"></ol>
+    </nav>
+
+    <!-- Side Depth & Pressure Telemetry Meter -->
+    <aside class="depth-meter" aria-label="Live depth and pressure gauge">
+      <div class="depth-readout">
+        <span class="telemetry-tag">DEPTH</span>
+        <strong id="hud-depth-val" class="telemetry-num">0m</strong>
+      </div>
+      <div class="depth-ruler" aria-hidden="true">
+        <div class="depth-ruler-track">
+          <div id="hud-depth-fill" class="depth-ruler-fill"></div>
+        </div>
+        <div class="depth-ticks">
+          <span>0m</span>
+          <span>190m</span>
+          <span>380m</span>
+        </div>
+      </div>
+      <div class="pressure-readout">
+        <span class="telemetry-tag">PRESSURE</span>
+        <strong id="hud-pressure-val" class="telemetry-sub">1.0 ATM</strong>
+      </div>
+    </aside>
+
+    <!-- Bottom-Left Throttle & Velocity Indicator -->
+    <div class="throttle-hud" aria-label="Train throttle speed">
+      <div class="throttle-header">
+        <span class="telemetry-tag">THROTTLE</span>
+        <span id="hud-throttle-state" class="throttle-mode">IDLE</span>
+      </div>
+      <div class="throttle-bar-wrap" aria-hidden="true">
+        <div id="hud-throttle-fill" class="throttle-bar-fill"></div>
+      </div>
+      <div id="hud-speed-val" class="throttle-speed">0 km/h</div>
+    </div>
+
+    <!-- Scroll Track: Semantic Story Chapters -->
+    <main id="scroll-track" class="scroll-track"></main>
+
+    <!-- Creature & Landmark Fun-Fact Tooltip -->
+    <div id="hotspot-tooltip" class="hotspot-tooltip" role="tooltip" aria-hidden="true">
+      <h3 id="tooltip-title"></h3>
+      <p id="tooltip-body"></p>
+    </div>
+
+    <!-- Interactive Driver Training Modal -->
+    <div
+      id="training-modal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="training-modal-title"
+      aria-hidden="true"
+    >
+      <div class="modal-card">
+        <button
+          type="button"
+          id="close-training-modal"
+          class="modal-close"
+          aria-label="Close training briefing"
+        >
+          ✕
+        </button>
+        <span class="kicker-code">ABYSSLINE ACADEMY // CADET BRIEFING</span>
+        <h2 id="training-modal-title" class="modal-heading">Pre-Run Driver Check</h2>
+        <p class="modal-intro">
+          Complete three quick situational checks from your journey to unlock your Apprentice Driver pass.
+        </p>
+
+        <form id="training-check-form" class="training-form">
+          <fieldset>
+            <legend>1. Inside the cab, what replaces weather forecasts?</legend>
+            <label><input type="radio" name="q1" value="wind" required /> Surface wind maps</label>
+            <label><input type="radio" name="q1" value="pressure" /> Water pressure &amp; sonar readings</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>2. How do you pilot through the Emerald Kelp Forest?</legend>
+            <label><input type="radio" name="q2" value="slow" required /> Ease throttle for calm, steady passage</label>
+            <label><input type="radio" name="q2" value="max" /> Engage maximum hyper-glide</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>3. How many simulator hours precede your first solo arch crossing?</legend>
+            <label><input type="radio" name="q3" value="40" required /> 40 hours</label>
+            <label><input type="radio" name="q3" value="300" /> 300 hours + hull certification</label>
+          </fieldset>
+
+          <button type="submit" class="modal-submit-btn">Verify Cadet Readiness</button>
+        </form>
+
+        <div id="training-result" class="training-result" hidden></div>
+      </div>
+    </div>
+
+    <!-- Optional Concept Film Modal (Lazy-loaded MP4) -->
+    <div
+      id="video-modal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="video-modal-title"
+      aria-hidden="true"
+    >
+      <div class="modal-card video-modal-card">
+        <button
+          type="button"
+          id="close-video-modal"
+          class="modal-close"
+          aria-label="Close concept film"
+        >
+          ✕
+        </button>
+        <span class="kicker-code">CONCEPT REEL // FULL ROUTE</span>
+        <h2 id="video-modal-title" class="modal-heading">Abyssline 04 Motion Preview</h2>
+        <video
+          id="concept-video-player"
+          class="concept-video"
+          controls
+          playsinline
+          preload="none"
+        ></video>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
