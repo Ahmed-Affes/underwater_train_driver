@@ -22,7 +22,7 @@
       ]
     },
     {
-      "source": "/assets/chapters/(.*)",
+      "source": "/assets/posters/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

@@ -1,13 +1,14 @@
 /**
  * LENIS + GSAP SCROLLTRIGGER MASTER TIMELINE
  * ---------------------------------------------------------------------------
- * Scroll = Throttle across ~1000vh.
+ * Scroll = Playback across ~2000vh (~100vh per second of video).
  * - Maps scroll position to per-chapter video timestamps using monotonic dwell
- *   easing (calm slow-down in middle of chapters, smooth pace across cuts).
- * - Lerps `smoothedTime` toward `targetTime` inside requestAnimationFrame so
- *   both forward and backward scrubbing feel weighty and fluid.
- * - Triggers soft light-bloom + subtle scale push across cut boundaries.
- * - Orchestrates Chapter 3's signature Cab circular iris reveal & live UI HUD.
+ *   easing (calm slow-down in middle of chapters & dramatic beats).
+ * - Lerps `smoothedTime` toward `targetTime` inside requestAnimationFrame
+ *   (smoothing factor 0.08–0.12) so forward & backward scrubbing stay silky.
+ * - Enforces strict single-card visibility: only the active chapter card is
+ *   visible at any moment, with a clean exit gap before the next enters.
+ * - Orchestrates the native Command Cab holographic HUD & hotspots.
  */
 
 import gsap from 'gsap';
@@ -34,24 +35,30 @@ function clamp01(v: number): number {
   return Math.max(0, Math.min(1, v));
 }
 
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = clamp01((x - edge0) / Math.max(0.0001, edge1 - edge0));
+  return t * t * (3 - 2 * t);
+}
+
 /** Monotonic C-infinity dwell curve: slower in chapter middle (t=0.5), smoother across cuts */
 function applyDwellCurve(t: number, dwell: number): number {
   const d = Math.max(0, Math.min(0.75, dwell));
   return t + (d * Math.sin(2 * Math.PI * t)) / (2 * Math.PI);
 }
 
-/** Wraps headline lines/words in overflow-hidden masks for expo/quart reveals */
-export function prepareSplitText(): void {
-  const nodes = document.querySelectorAll<HTMLElement>('[data-split]');
-  nodes.forEach((el) => {
-    const words = (el.textContent || '').trim().split(/\s+/);
-    el.innerHTML = words
-      .map(
-        (w) =>
-          `<span class="split-mask"><span class="split-word">${w}</span></span>`
-      )
-      .join(' ');
-  });
+/** Deterministic envelope: ensures a clean exit before the next chapter card enters */
+function computeCardEnvelope(localT: number, index: number, totalChapters: number): number {
+  if (index === 0) {
+    // Hero starts fully visible at 0 and exits cleanly before cut
+    return localT < 0.78 ? 1 : 1 - smoothstep(0.78, 0.94, localT);
+  }
+  if (index === totalChapters - 1) {
+    // Final chapter enters cleanly and remains visible through the end
+    return smoothstep(0.06, 0.2, localT);
+  }
+  const enter = smoothstep(0.06, 0.2, localT);
+  const exit = 1 - smoothstep(0.78, 0.94, localT);
+  return Math.min(enter, exit);
 }
 
 export interface TimelineHandle {
@@ -70,10 +77,6 @@ export function initCinematicTimeline(opts: {
   const { scrubber, fxCanvas, audioEngine, hud, reducedMotion } = opts;
 
   const stageEl = document.getElementById('stage') as HTMLElement;
-  const cutBloomEl = document.getElementById('cut-bloom') as HTMLElement;
-  const colorGradeEl = document.getElementById('color-grade') as HTMLElement;
-  const causticEl = document.getElementById('caustic-overlay') as HTMLElement;
-  const vignetteEl = document.getElementById('vignette-overlay') as HTMLElement;
   const cabOverlayEl = document.getElementById('cab-overlay') as HTMLElement;
   const cabVideoEl = document.getElementById('cab-video-player') as HTMLVideoElement | null;
 
@@ -84,8 +87,10 @@ export function initCinematicTimeline(opts: {
   const cabSpeedVal = document.getElementById('cab-ui-speed-val');
   const cabSonarSweep = document.getElementById('cab-ui-sonar-sweep');
   const cabThrottleLever = document.getElementById('cab-ui-throttle-lever');
-  const cityStepNodes = Array.from(
-    document.querySelectorAll<HTMLElement>('.city-step-item')
+  const cityStepNodes = Array.from(document.querySelectorAll<HTMLElement>('.city-step-item'));
+
+  const cardNodes = SITE_CONFIG.chapters.map((_, i) =>
+    document.querySelector<HTMLElement>(`#chapter-${i} .chapter-card`)
   );
 
   // Build normalized chapter scroll windows
@@ -121,88 +126,6 @@ export function initCinematicTimeline(opts: {
     hasScrolled: false,
   };
 
-  // Per-chapter split-text & editorial reveals
-  const sections = gsap.utils.toArray<HTMLElement>('.chapter-section');
-  sections.forEach((sec, idx) => {
-    const card = sec.querySelector<HTMLElement>('.chapter-card');
-    const words = sec.querySelectorAll<HTMLElement>('.split-word');
-    const body = sec.querySelector<HTMLElement>('.chapter-body');
-    const meta = sec.querySelector<HTMLElement>('.chapter-meta');
-
-    if (idx === 0) {
-      if (!reducedMotion) {
-        gsap.fromTo(
-          words,
-          { yPercent: 115, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            duration: 1.0,
-            stagger: 0.055,
-            ease: 'expo.out',
-            delay: 0.15,
-          }
-        );
-        if (body) {
-          gsap.fromTo(
-            body,
-            { y: 18, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.85, ease: 'quart.out', delay: 0.4 }
-          );
-        }
-        if (meta) {
-          gsap.fromTo(
-            meta,
-            { y: 14, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.75, ease: 'quart.out', delay: 0.55 }
-          );
-        }
-      }
-      return;
-    }
-
-    const revealTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: sec,
-        start: 'top 66%',
-        end: 'bottom 34%',
-        toggleActions: 'play reverse play reverse',
-      },
-    });
-
-    if (reducedMotion) {
-      if (card) revealTl.fromTo(card, { opacity: 0 }, { opacity: 1, duration: 0.3 });
-    } else {
-      revealTl.fromTo(
-        words,
-        { yPercent: 115, opacity: 0 },
-        {
-          yPercent: 0,
-          opacity: 1,
-          duration: 0.85,
-          stagger: 0.04,
-          ease: 'expo.out',
-        }
-      );
-      if (body) {
-        revealTl.fromTo(
-          body,
-          { y: 16, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.7, ease: 'quart.out' },
-          '-=0.55'
-        );
-      }
-      if (meta) {
-        revealTl.fromTo(
-          meta,
-          { y: 14, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.65, ease: 'quart.out' },
-          '-=0.45'
-        );
-      }
-    }
-  });
-
   // Master continuous scroll tracker
   ScrollTrigger.create({
     trigger: '#scroll-track',
@@ -211,7 +134,7 @@ export function initCinematicTimeline(opts: {
     scrub: true,
     onUpdate: (self) => {
       state.scrollProgress = self.progress;
-      if (self.progress > 0.005) state.hasScrolled = true;
+      if (self.progress > 0.004) state.hasScrolled = true;
     },
   });
 
@@ -220,12 +143,15 @@ export function initCinematicTimeline(opts: {
     if (!target) return;
     scrubber.prioritizeTime(SITE_CONFIG.chapters[index]?.videoStart || 0);
 
+    // Land inside the chapter's clean hold window so its card & scene are immediately active
+    const targetScrollY =
+      index === 0 ? 0 : target.offsetTop + Math.round(target.offsetHeight * 0.28);
+
     if (reducedMotion) {
-      target.scrollIntoView({ behavior: 'auto' });
+      window.scrollTo({ top: targetScrollY, behavior: 'auto' });
       return;
     }
-    lenis.scrollTo(target, {
-      offset: 0,
+    lenis.scrollTo(targetScrollY, {
       duration: 1.35,
       easing: (t) => 1 - Math.pow(1 - t, 4),
     });
@@ -280,6 +206,26 @@ export function initCinematicTimeline(opts: {
       scrubber.prioritizeTime(ch.videoEnd);
     }
 
+    // Strictly ONE card visible at a time with clean enter/exit envelope
+    const totalChapters = ranges.length;
+    const activeEnv = computeCardEnvelope(localT, ch.index, totalChapters);
+    for (let i = 0; i < cardNodes.length; i++) {
+      const card = cardNodes[i];
+      if (!card) continue;
+      if (i === ch.index && activeEnv > 0.01) {
+        const yOffset = reducedMotion ? 0 : (1 - activeEnv) * 14;
+        card.style.opacity = activeEnv.toFixed(3);
+        card.style.visibility = 'visible';
+        card.style.transform = `translate3d(0, ${yOffset.toFixed(1)}px, 0)`;
+        card.classList.add('is-active');
+      } else {
+        card.style.opacity = '0';
+        card.style.visibility = 'hidden';
+        card.style.transform = 'translate3d(0, 14px, 0)';
+        card.classList.remove('is-active');
+      }
+    }
+
     // Telemetry smoothly follows video/chapter progress
     const depth = lerp(ch.depthRange[0], ch.depthRange[1], dwelledT);
     const pressure = lerp(ch.pressureRange[0], ch.pressureRange[1], dwelledT);
@@ -287,9 +233,9 @@ export function initCinematicTimeline(opts: {
     const liveSpeed = Math.round(
       ch.index === 0 && !state.hasScrolled
         ? 0
-        : ch.index === 7 && localT > 0.72
-        ? Math.max(0, baseSpeed * (1 - (localT - 0.72) * 3.5))
-        : Math.min(182, baseSpeed + vel * 34)
+        : ch.id === 'platform' && localT > 0.45
+        ? 0
+        : Math.min(182, baseSpeed + vel * 24)
     );
 
     hud.updateTelemetry({
@@ -301,80 +247,19 @@ export function initCinematicTimeline(opts: {
       isStarted: state.hasScrolled,
     });
 
-    // Subtle cut-transition bloom + micro scale push around cutTimestamps
-    let cutBloom = 0;
-    if (!reducedMotion) {
-      for (const cutSec of SITE_CONFIG.cutTimestamps) {
-        const dist = Math.abs(state.smoothedTime - cutSec);
-        if (dist < 0.22) {
-          cutBloom = Math.max(cutBloom, 1 - dist / 0.22);
-        }
-      }
-    }
-    if (cutBloomEl) {
-      cutBloomEl.style.opacity = (cutBloom * 0.42).toFixed(3);
-    }
+    stageEl.style.setProperty('--accent-color', ch.accent);
 
-    // Depth-linked color grading & atmosphere overlays
-    const nextCh = ranges[Math.min(ranges.length - 1, ch.index + 1)];
-    const gradeBlend = Math.max(0, (localT - 0.55) / 0.45);
-    if (colorGradeEl) {
-      colorGradeEl.style.background = ch.colorGrade.tint;
-      colorGradeEl.style.opacity = lerp(
-        ch.colorGrade.tintOpacity,
-        nextCh.colorGrade.tintOpacity,
-        gradeBlend
-      ).toFixed(3);
-    }
-    if (causticEl) {
-      causticEl.style.opacity = lerp(
-        ch.colorGrade.causticOpacity,
-        nextCh.colorGrade.causticOpacity,
-        gradeBlend
-      ).toFixed(3);
-    }
-    if (vignetteEl) {
-      vignetteEl.style.opacity = lerp(
-        ch.colorGrade.vignette,
-        nextCh.colorGrade.vignette,
-        gradeBlend
-      ).toFixed(3);
-    }
-    stageEl.style.setProperty('--accent-color', ch.colorGrade.accent);
-    stageEl.style.setProperty(
-      '--chroma-shift',
-      reducedMotion ? '0px' : `${(vel * 3.2).toFixed(2)}px`
-    );
-
-    // Chapter 3 SIGNATURE CAB POV: seamless camera dive into the REAL video cab (no teleporting cut)
-    // `cabEnter` ramps smoothly as the video approaches & passes through the cockpit glass (2.85s..3.25s)
+    // Command Cab holographic gauges & interactive hotspots (native video cab moment)
     let cabHudFactor = 0;
-    let cabPushZoom = 0;
-    if (ch.index === 3) {
-      if (localT < 0.28) {
-        cabPushZoom = Math.sin((localT / 0.28) * Math.PI) * 0.12;
-        cabHudFactor = Math.max(0, (localT - 0.14) / 0.14);
-      } else if (localT > 0.8) {
-        cabHudFactor = Math.max(0, (1 - localT) / 0.2);
-      } else {
-        cabHudFactor = 1;
-      }
+    if (ch.id === 'cab') {
+      cabHudFactor = Math.min(smoothstep(0.08, 0.24, localT), 1 - smoothstep(0.78, 0.94, localT));
     }
-    const cabEase = cabHudFactor * cabHudFactor * (3 - 2 * cabHudFactor);
+    const cabEase = cabHudFactor;
 
     if (cabOverlayEl) {
-      if (SITE_CONFIG.cabMedia.overrideVideo && !reducedMotion) {
-        const radius = (cabEase * 82).toFixed(1);
-        cabOverlayEl.style.clipPath = `circle(${radius}% at 50% 48%)`;
-        cabOverlayEl.style.opacity = cabEase > 0.02 ? '1' : '0';
-      } else {
-        cabOverlayEl.style.clipPath = 'none';
-        cabOverlayEl.style.opacity = cabEase.toFixed(3);
-        cabOverlayEl.style.transform = reducedMotion
-          ? 'none'
-          : `scale(${(0.95 + cabEase * 0.05).toFixed(4)})`;
-      }
+      cabOverlayEl.style.opacity = cabEase.toFixed(3);
       cabOverlayEl.style.pointerEvents = cabEase > 0.45 ? 'auto' : 'none';
+      cabOverlayEl.setAttribute('aria-hidden', cabEase > 0.1 ? 'false' : 'true');
 
       if (cabVideoEl) {
         if (cabEase > 0.2 && cabVideoEl.paused) {
@@ -409,8 +294,8 @@ export function initCinematicTimeline(opts: {
       }
     }
 
-    // Chapter 5 Sunken City 3-step training progress rail
-    if (ch.index === 5 && cityStepNodes.length === 3) {
+    // Sunken Arch 3-step certification rail
+    if (ch.id === 'sunken-arch' && cityStepNodes.length === 3) {
       const activeStep = localT < 0.34 ? 0 : localT < 0.7 ? 1 : 2;
       cityStepNodes.forEach((el, sIdx) => {
         el.classList.toggle('is-active', sIdx === activeStep);
@@ -418,28 +303,27 @@ export function initCinematicTimeline(opts: {
       });
     }
 
-    // Idle breathing (1-1.4%) + subtle speed zoom (1-2.2%) + seamless cab push
-    const idleBreath = reducedMotion ? 0 : 0.006 * (0.5 + 0.5 * Math.sin(timeSec * 0.9));
+    // Tiny idle drift & capped micro-scale (strictly <= 1.045x, never soft)
+    const idleBreath = reducedMotion ? 0 : 0.008 * (0.5 + 0.5 * Math.sin(timeSec * 0.85));
     const speedZoom = reducedMotion ? 0 : vel * 0.022;
-    const cutPush = cutBloom * 0.014;
-    const scaleMultiplier = 1 + idleBreath + speedZoom + cutPush + (reducedMotion ? 0 : cabPushZoom);
+    const scaleMultiplier = Math.min(1.045, 1 + idleBreath + speedZoom);
+    const driftX = reducedMotion ? 0 : Math.sin(timeSec * 0.55) * 3.0;
+    const driftY = reducedMotion ? 0 : Math.cos(timeSec * 0.42) * 2.0;
 
     // Interpolate mobile focal crop smoothly into next chapter near boundaries
+    const nextCh = ranges[Math.min(ranges.length - 1, ch.index + 1)];
+    const gradeBlend = Math.max(0, (localT - 0.65) / 0.35);
     const focalX = lerp(ch.focalX, nextCh.focalX, gradeBlend);
 
-    scrubber.render(state.smoothedTime, focalX, scaleMultiplier, ch.index);
+    scrubber.render(state.smoothedTime, focalX, scaleMultiplier, ch.index, driftX, driftY);
 
     fxCanvas.setState({
       velocityNorm: vel,
-      sparkleFactor: lerp(
-        ch.colorGrade.sparkleFactor,
-        nextCh.colorGrade.sparkleFactor,
-        gradeBlend
-      ),
+      sparkleFactor: lerp(ch.sparkleFactor, nextCh.sparkleFactor, gradeBlend),
       accentRgb:
-        ch.index === 6
+        ch.id === 'glow-zone'
           ? '244, 114, 182'
-          : ch.index === 4
+          : ch.id === 'kelp-skyline'
           ? '52, 211, 153'
           : '34, 211, 238',
     });

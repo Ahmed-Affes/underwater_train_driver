@@ -11,10 +11,9 @@
   --accent-color: #22d3ee;
   --amber-glow: #fbbf24;
   --pink-glow: #f472b6;
-  --chroma-shift: 0px;
 
-  --glass-bg: rgba(3, 16, 28, 0.66);
-  --glass-border: rgba(165, 243, 252, 0.22);
+  --glass-bg: rgba(3, 16, 28, 0.68);
+  --glass-border: rgba(165, 243, 252, 0.24);
 }
 
 *,
@@ -161,7 +160,7 @@ body {
 }
 
 /* ==========================================================================
-   2. TOP ROUTE PROGRESS LINE & FIXED VIDEO STAGE
+   2. TOP ROUTE PROGRESS LINE & FIXED VIDEO STAGE (ZERO VIDEO FILTERS)
    ========================================================================== */
 
 .top-progress-track {
@@ -208,48 +207,13 @@ body {
   pointer-events: none;
 }
 
-#color-grade {
-  mix-blend-mode: soft-light;
-  transition: background 0.3s ease;
-}
-
-#caustic-overlay {
-  background:
-    radial-gradient(ellipse at 25% 12%, rgba(165, 243, 252, 0.22), transparent 46%),
-    radial-gradient(ellipse at 72% 16%, rgba(125, 211, 252, 0.18), transparent 42%);
-  mix-blend-mode: screen;
-  animation: causticDrift 12s ease-in-out infinite;
-}
-
-@keyframes causticDrift {
-  0%, 100% { transform: translate3d(-2%, 0, 0) scale(1); }
-  50% { transform: translate3d(2%, 1.5%, 0) scale(1.04); }
-}
-
-#cut-bloom {
-  opacity: 0;
-  background: radial-gradient(
-    circle at 50% 48%,
-    rgba(165, 243, 252, 0.45) 0%,
-    rgba(251, 191, 36, 0.16) 40%,
-    transparent 74%
-  );
-  mix-blend-mode: screen;
-}
-
+/* Desktop keeps video 100% sharp and unfiltered */
 #vignette-overlay {
-  background: radial-gradient(
-    ellipse at 50% 48%,
-    transparent 44%,
-    rgba(2, 9, 17, 0.85) 100%
-  );
-  box-shadow:
-    inset var(--chroma-shift) 0 18px rgba(34, 211, 238, 0.16),
-    inset calc(var(--chroma-shift) * -1) 0 18px rgba(244, 114, 182, 0.14);
+  display: none;
 }
 
 /* ==========================================================================
-   3. CHAPTER 3 SIGNATURE CAB POV OVERLAY + REAL HOLOGRAPHIC UI
+   3. COMMAND CAB HOLOGRAPHIC HUD OVERLAY
    ========================================================================== */
 
 .cab-overlay {
@@ -259,8 +223,7 @@ body {
   opacity: 0;
   pointer-events: none;
   background: transparent;
-  transform-origin: 50% 48%;
-  will-change: transform, opacity, clip-path;
+  will-change: opacity;
 }
 
 .cab-media-el,
@@ -270,7 +233,6 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.9);
 }
 
 .cab-ui-hud {
@@ -281,21 +243,21 @@ body {
 
 .robot-tip-bubble {
   position: absolute;
-  left: 10.5%;
-  top: 40.5%;
+  left: 9.5%;
+  top: 34%;
   max-width: 225px;
   display: flex;
   align-items: flex-start;
   gap: 0.55rem;
   padding: 0.6rem 0.85rem;
   border-radius: 14px;
-  background: rgba(3, 18, 32, 0.78);
-  border: 1px solid rgba(34, 211, 238, 0.5);
+  background: rgba(3, 18, 32, 0.82);
+  border: 1px solid rgba(34, 211, 238, 0.52);
   backdrop-filter: blur(10px);
   font-size: 0.78rem;
   line-height: 1.4;
   color: #e0f2fe;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
 }
 
 .robot-blink-eye {
@@ -316,54 +278,57 @@ body {
 
 .cab-hud-panel {
   position: absolute;
-  bottom: 5.5%;
-  padding: 0.8rem 0.95rem;
+  padding: 0.72rem 0.9rem;
   border-radius: 14px;
-  background: rgba(4, 23, 38, 0.68);
+  background: rgba(4, 23, 38, 0.72);
   border: 1px solid rgba(56, 189, 248, 0.48);
   backdrop-filter: blur(10px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
 .cab-hud-left {
-  left: 16%;
-  width: min(250px, 30vw);
+  left: 9.5%;
+  top: 13.5%;
+  bottom: auto;
+  width: min(225px, 21vw);
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.55rem;
 }
 
 .cab-hud-right {
-  right: 16%;
-  width: min(265px, 32vw);
+  right: clamp(6.4rem, 9vw, 8.8rem);
+  top: 43%;
+  bottom: auto;
+  width: min(240px, 22vw);
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   border-color: rgba(244, 114, 182, 0.45);
 }
 
 .cab-hud-tag {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   letter-spacing: 0.14em;
   color: #a5f3fc;
 }
 
 .cab-hud-val {
   font-family: var(--font-mono);
-  font-size: 1.15rem;
+  font-size: 1.08rem;
   color: #fde68a;
 }
 
 .cab-hud-sub {
   font-family: var(--font-mono);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: #ffffff;
 }
 
 .cab-bar-track {
-  margin-top: 0.35rem;
+  margin-top: 0.32rem;
   height: 6px;
   border-radius: 999px;
   background: rgba(165, 243, 252, 0.16);
@@ -382,18 +347,18 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .hull-segments {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   margin-top: 0.3rem;
 }
 
 .hull-segments i {
   display: block;
-  width: 12px;
+  width: 10px;
   height: 7px;
   border-radius: 2px;
   background: #34d399;
@@ -403,8 +368,8 @@ body {
 .sonar-radar {
   position: relative;
   flex: 0 0 auto;
-  width: 66px;
-  height: 66px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   border: 1.5px solid rgba(34, 211, 238, 0.65);
   background: radial-gradient(circle, rgba(34, 211, 238, 0.18), rgba(4, 23, 38, 0.6));
@@ -413,13 +378,13 @@ body {
 
 .sonar-ring {
   position: absolute;
-  inset: 14px;
+  inset: 12px;
   border-radius: 50%;
   border: 1px solid rgba(34, 211, 238, 0.32);
 }
 
 .sonar-ring.r2 {
-  inset: 26px;
+  inset: 23px;
 }
 
 .sonar-sweep {
@@ -445,14 +410,14 @@ body {
 .cab-sonar-stats {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .cab-throttle-mini {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
 }
 
 .throttle-lever-track {
@@ -598,15 +563,15 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 
 .route-node {
-  min-height: 30px;
+  min-height: 28px;
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.25rem 0.45rem;
+  padding: 0.22rem 0.45rem;
   background: transparent;
   border: 0;
   color: rgba(240, 249, 255, 0.72);
@@ -625,7 +590,7 @@ body {
 
 .route-label {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   opacity: 0;
@@ -799,7 +764,7 @@ body {
 }
 
 /* ==========================================================================
-   5. TEXT CARDS — LEFT / RIGHT THIRD (TRAIN ALWAYS UNOBSTRUCTED)
+   5. TEXT CARDS — SINGLE FIXED SLOT IN LEFT/RIGHT THIRD (NEVER COVERS TRAIN)
    ========================================================================== */
 
 .scroll-track {
@@ -810,80 +775,73 @@ body {
 
 .chapter-section {
   position: relative;
-  display: flex;
-  padding: 5.5rem clamp(4.8rem, 7vw, 7.5rem) 4.5rem;
-}
-
-.chapter-section.side-left,
-.chapter-section.side-top-left {
-  justify-content: flex-start;
-}
-
-.chapter-section.side-right {
-  justify-content: flex-end;
-}
-
-.chapter-section.align-top {
-  align-items: flex-start;
-}
-
-.chapter-section.align-mid {
-  align-items: center;
-}
-
-.chapter-section.align-bottom {
-  align-items: flex-end;
-  padding-bottom: 5.5rem;
 }
 
 .chapter-card {
-  position: sticky;
-  top: 5.25rem;
-  width: min(410px, 33vw);
-  min-width: 280px;
-  pointer-events: auto;
-  padding: 1.05rem 1.25rem;
+  position: fixed;
+  top: 5.1rem;
+  right: clamp(6.4rem, 9vw, 8.8rem);
+  width: min(375px, 28vw);
+  min-width: 270px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  padding: 1rem 1.2rem;
   border-radius: 10px;
   background: linear-gradient(
-    90deg,
-    rgba(2, 14, 24, 0.78) 0%,
-    rgba(4, 22, 36, 0.56) 72%,
-    rgba(4, 22, 36, 0.25) 100%
+    270deg,
+    rgba(2, 14, 24, 0.82) 0%,
+    rgba(4, 22, 36, 0.62) 72%,
+    rgba(4, 22, 36, 0.34) 100%
   );
   border: 0;
-  border-left: 2.5px solid var(--accent-color);
+  border-right: 2.5px solid var(--accent-color);
   backdrop-filter: blur(8px);
   box-shadow: 0 16px 40px rgba(2, 8, 16, 0.28);
+  will-change: opacity, transform;
 }
 
-.chapter-section.side-right .chapter-card {
+.chapter-card.is-active {
+  pointer-events: auto;
+}
+
+.chapter-section.side-left .chapter-card,
+.chapter-section.side-top-left .chapter-card {
+  right: auto;
+  left: clamp(6.4rem, 9vw, 8.8rem);
+  border-right: 0;
+  border-left: 2.5px solid var(--accent-color);
   background: linear-gradient(
-    270deg,
-    rgba(2, 14, 24, 0.78) 0%,
-    rgba(4, 22, 36, 0.56) 72%,
-    rgba(4, 22, 36, 0.25) 100%
+    90deg,
+    rgba(2, 14, 24, 0.82) 0%,
+    rgba(4, 22, 36, 0.62) 72%,
+    rgba(4, 22, 36, 0.34) 100%
   );
-  border-left: 0;
-  border-right: 2.5px solid var(--accent-color);
+}
+
+.chapter-section.align-mid .chapter-card {
+  top: 50%;
+  margin-top: -8rem;
 }
 
 .chapter-section.align-bottom .chapter-card {
   top: auto;
-  bottom: 2.25rem;
+  bottom: 2.2rem;
 }
 
-.chapter-section.side-top-left .chapter-card {
-  width: min(360px, 30vw);
-  top: 5.25rem;
+.chapter-section[data-chapter-id="glow-zone"] .chapter-card,
+.chapter-section[data-chapter-id="arrival"] .chapter-card {
+  top: 4.5rem;
+  padding: 0.85rem 1.1rem;
 }
 
 .chapter-kicker {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.5rem;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #a5f3fc;
@@ -895,10 +853,10 @@ body {
 }
 
 .chapter-headline {
-  margin: 0 0 0.6rem;
+  margin: 0 0 0.55rem;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.45rem, 2.2vw, 2.05rem);
+  font-size: clamp(1.38rem, 2.05vw, 1.9rem);
   line-height: 1.08;
   letter-spacing: -0.02em;
   color: #ffffff;
@@ -906,43 +864,31 @@ body {
 }
 
 .chapter-headline.is-hero {
-  font-size: clamp(1.65rem, 2.35vw, 2.3rem);
+  font-size: clamp(1.58rem, 2.25vw, 2.15rem);
   font-weight: 800;
 }
 
-.split-mask {
-  display: inline-block;
-  overflow: hidden;
-  vertical-align: top;
-  padding-bottom: 0.06em;
-}
-
-.split-word {
-  display: inline-block;
-  will-change: transform, opacity;
-}
-
 .hero-subline {
-  margin: 0 0 0.5rem;
-  font-size: 1.06rem;
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #bae6fd;
 }
 
 .chapter-body {
   margin: 0;
-  font-size: 0.94rem;
-  line-height: 1.54;
+  font-size: 0.9rem;
+  line-height: 1.52;
   color: rgba(248, 250, 252, 0.94);
 }
 
 .chapter-fact {
-  margin: 0.7rem 0 0;
-  padding-top: 0.6rem;
+  margin: 0.65rem 0 0;
+  padding-top: 0.55rem;
   border-top: 1px solid rgba(165, 243, 252, 0.18);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  line-height: 1.45;
+  font-size: 0.7rem;
+  line-height: 1.44;
   color: #fde68a;
 }
 
@@ -950,9 +896,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
-  margin-top: 0.95rem;
+  margin-top: 0.85rem;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #67e8f9;
@@ -964,11 +910,11 @@ body {
   background: linear-gradient(90deg, #22d3ee, transparent);
 }
 
-/* Chapter 5: Slim 3-Step Certification Rail */
+/* Sunken Arch: Slim 3-Step Certification Rail */
 .city-steps-rail {
   list-style: none;
-  margin: 0.85rem 0 0;
-  padding: 0.65rem 0 0;
+  margin: 0.8rem 0 0;
+  padding: 0.6rem 0 0;
   border-top: 1px solid rgba(165, 243, 252, 0.18);
   display: flex;
   justify-content: space-between;
@@ -980,7 +926,7 @@ body {
   align-items: center;
   gap: 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.63rem;
   color: rgba(224, 242, 254, 0.62);
 }
 
@@ -1003,59 +949,59 @@ body {
   color: #fde68a;
 }
 
-/* Chapter 6: Concept Compensation Card */
+/* Glow Zone: Concept Compensation Card */
 .concept-comp-card {
-  margin-top: 0.85rem;
-  padding: 0.7rem 0.85rem;
+  margin-top: 0.8rem;
+  padding: 0.65rem 0.8rem;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.62);
+  background: rgba(15, 23, 42, 0.66);
   border: 1px solid rgba(244, 114, 182, 0.38);
 }
 
 .comp-tag {
   display: block;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.28rem;
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #f9a8d4;
 }
 
 .concept-comp-card p {
-  margin: 0.2rem 0 0;
-  font-size: 0.78rem;
-  line-height: 1.42;
+  margin: 0.18rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.4;
   color: #f1f5f9;
 }
 
-/* Chapter 7: Arrival CTAs & Recap Row */
+/* Arrival CTAs & Recap Row */
 .arrival-actions {
-  margin-top: 1rem;
+  margin-top: 0.9rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .arrival-btn-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 0.55rem;
 }
 
 .magnetic-cta {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.72rem 1.2rem;
+  gap: 0.5rem;
+  padding: 0.68rem 1.1rem;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.5);
   background: linear-gradient(135deg, #22d3ee 0%, #38bdf8 55%, #fde68a 100%);
   color: #031520;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   cursor: pointer;
   box-shadow: 0 10px 26px rgba(34, 211, 238, 0.35);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1063,25 +1009,25 @@ body {
 
 .secondary-cta {
   min-height: 44px;
-  padding: 0.7rem 1.05rem;
+  padding: 0.66rem 1rem;
   border-radius: 999px;
   border: 1px solid rgba(165, 243, 252, 0.45);
   background: rgba(3, 18, 30, 0.72);
   color: #e0f2fe;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   cursor: pointer;
 }
 
 .quiz-link-btn {
   align-self: flex-start;
   min-height: 36px;
-  padding: 0.25rem 0;
+  padding: 0.2rem 0;
   background: transparent;
   border: 0;
   color: #fde68a;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   text-decoration: underline;
   text-underline-offset: 4px;
   cursor: pointer;
@@ -1090,22 +1036,22 @@ body {
 .recap-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem 0.75rem;
-  padding-top: 0.7rem;
+  gap: 0.5rem 0.7rem;
+  padding-top: 0.65rem;
   border-top: 1px solid rgba(165, 243, 252, 0.18);
 }
 
 .recap-label {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #a5f3fc;
 }
 
 .recap-val {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: #ffffff;
 }
 
@@ -1131,7 +1077,7 @@ body {
   padding: 0.35rem 0.7rem 0.35rem 0.45rem;
   border-radius: 999px;
   border: 1px solid rgba(165, 243, 252, 0.55);
-  background: rgba(3, 18, 30, 0.78);
+  background: rgba(3, 18, 30, 0.8);
   backdrop-filter: blur(8px);
   color: #f8fafc;
   cursor: pointer;
@@ -1170,7 +1116,7 @@ body {
 
 .hotspot-tag {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.65rem;
   white-space: nowrap;
 }
 
@@ -1368,15 +1314,17 @@ body {
    ========================================================================== */
 
 @media (max-width: 1024px) {
-  .chapter-section {
-    padding: 5.5rem 4.2rem 4.5rem;
-  }
   .chapter-card {
-    width: min(340px, 42vw);
+    right: clamp(5.2rem, 8vw, 6.8rem);
+    width: min(330px, 34vw);
   }
-  .cab-hud-left { left: 6%; width: 42vw; }
-  .cab-hud-right { right: 6%; width: 42vw; }
-  .robot-tip-bubble { left: 5%; top: 38%; }
+  .chapter-section.side-left .chapter-card,
+  .chapter-section.side-top-left .chapter-card {
+    left: clamp(4.8rem, 7vw, 6.2rem);
+  }
+  .cab-hud-left { left: 6%; width: 32vw; }
+  .cab-hud-right { right: 6%; width: 34vw; }
+  .robot-tip-bubble { left: 5%; top: 28%; }
 }
 
 @media (max-width: 767px) {
@@ -1388,7 +1336,7 @@ body {
   }
 
   .top-hud {
-    padding: 0.7rem 0.75rem;
+    padding: 0.65rem 0.75rem;
   }
 
   .brand-badge {
@@ -1403,109 +1351,113 @@ body {
 
   /* Reduced mobile HUD: slim Depth + Throttle pills at top edges */
   .depth-meter {
-    top: 4.1rem;
+    top: 4rem;
     right: 0.75rem;
     transform: none;
     flex-direction: row;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.45rem 0.75rem;
+    padding: 0.42rem 0.72rem;
   }
 
   .throttle-hud {
-    top: 4.1rem;
+    top: 4rem;
     left: 0.75rem;
     bottom: auto;
     min-width: 132px;
-    padding: 0.45rem 0.7rem;
+    padding: 0.42rem 0.68rem;
   }
 
-  /* Mobile text cards sit in a slim sticky bottom glass sheet keeping train clear above */
-  .chapter-section,
-  .chapter-section.side-left,
-  .chapter-section.side-right,
-  .chapter-section.side-top-left,
-  .chapter-section.align-top,
-  .chapter-section.align-mid,
-  .chapter-section.align-bottom {
-    justify-content: center;
-    align-items: flex-end;
-    padding: 7.2rem 0.75rem 0.85rem;
-  }
-
+  /* Mobile text cards sit in a slim fixed bottom glass sheet keeping train clear above */
   .chapter-card,
+  .chapter-section.side-left .chapter-card,
+  .chapter-section.side-top-left .chapter-card,
+  .chapter-section.align-mid .chapter-card,
   .chapter-section.align-bottom .chapter-card,
-  .chapter-section.side-top-left .chapter-card {
-    position: sticky;
+  .chapter-section[data-chapter-id="glow-zone"] .chapter-card,
+  .chapter-section[data-chapter-id="arrival"] .chapter-card {
     top: auto;
     bottom: 0.75rem;
-    width: 100%;
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
     min-width: 0;
-    max-height: 35vh;
+    margin-top: 0;
+    max-height: 33vh;
     overflow-y: auto;
     padding: 0.8rem 0.95rem;
     border-radius: 16px;
+    border-right: 0;
+    border-left: 2.5px solid var(--accent-color);
   }
 
   .chapter-headline {
-    font-size: 1.3rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .chapter-headline.is-hero {
-    font-size: 1.55rem;
-  }
-
-  .hero-subline {
-    font-size: 0.92rem;
+    font-size: 1.24rem;
     margin-bottom: 0.35rem;
   }
 
+  .chapter-headline.is-hero {
+    font-size: 1.42rem;
+  }
+
+  .hero-subline {
+    font-size: 0.88rem;
+    margin-bottom: 0.3rem;
+  }
+
   .chapter-body {
-    font-size: 0.82rem;
-    line-height: 1.45;
+    font-size: 0.8rem;
+    line-height: 1.44;
   }
 
   .chapter-fact {
-    margin-top: 0.45rem;
-    padding-top: 0.45rem;
-    font-size: 0.68rem;
+    margin-top: 0.42rem;
+    padding-top: 0.42rem;
+    font-size: 0.66rem;
   }
 
-  /* Feather mobile cinema band softly into dark ocean background */
+  /* Mobile framing band outside the 9vh..65vh crisp video window */
   #vignette-overlay {
-    background:
-      linear-gradient(180deg, #020a11 0%, transparent 14%, transparent 60%, #020a11 72%),
-      radial-gradient(ellipse at 50% 37%, transparent 45%, rgba(2, 9, 17, 0.7) 100%);
+    display: block;
+    background: linear-gradient(
+      180deg,
+      #020a11 0%,
+      #020a11 8.5%,
+      transparent 10.5%,
+      transparent 63.5%,
+      #020a11 66%
+    );
   }
 
   /* Cab Mobile Layout: keep gauges & pins cleanly inside the upper-mid cinema band */
   .cab-media-el,
   .cab-media-el img {
-    top: 8vh;
-    height: 58vh;
+    top: 9vh;
+    height: 56vh;
   }
 
   .robot-tip-bubble {
     left: 0.75rem;
-    top: 8.3rem;
+    top: 8.1rem;
     max-width: calc(100vw - 1.5rem);
-    padding: 0.45rem 0.68rem;
-    font-size: 0.71rem;
+    padding: 0.42rem 0.65rem;
+    font-size: 0.7rem;
   }
 
   .cab-hud-left {
     left: 0.75rem;
-    bottom: 37%;
+    top: auto;
+    bottom: 36%;
     width: 46vw;
-    padding: 0.5rem 0.6rem;
+    padding: 0.48rem 0.58rem;
   }
 
   .cab-hud-right {
     right: 0.75rem;
-    bottom: 37%;
+    top: auto;
+    bottom: 36%;
     width: 46vw;
-    padding: 0.5rem 0.6rem;
+    padding: 0.48rem 0.58rem;
     gap: 0.4rem;
   }
 
@@ -1515,14 +1467,14 @@ body {
     padding: 0.25rem;
   }
 
-  .cab-overlay [data-spot-id="cab-pressure"] { left: 26% !important; top: 34% !important; }
-  .cab-overlay [data-spot-id="cab-hull"] { left: 42% !important; top: 41% !important; }
-  .cab-overlay [data-spot-id="cab-throttle"] { left: 58% !important; top: 41% !important; }
-  .cab-overlay [data-spot-id="cab-sonar"] { left: 74% !important; top: 34% !important; }
+  .cab-overlay [data-spot-id="cab-hull"] { left: 20% !important; top: 47% !important; }
+  .cab-overlay [data-spot-id="cab-pressure"] { left: 48% !important; top: 50% !important; }
+  .cab-overlay [data-spot-id="cab-throttle"] { left: 78% !important; top: 52% !important; }
+  .cab-overlay [data-spot-id="cab-sonar"] { left: 66% !important; top: 36% !important; }
 
   .sonar-radar {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
   }
 
   .hotspot-tag {
@@ -1539,7 +1491,6 @@ body {
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  #caustic-overlay,
   .loader-beam,
   .hotspot-ring,
   .robot-blink-eye,
@@ -1548,8 +1499,7 @@ body {
   }
 
   .cab-overlay,
-  .magnetic-cta,
-  #color-grade {
+  .magnetic-cta {
     transition: opacity 0.25s ease !important;
   }
 }
