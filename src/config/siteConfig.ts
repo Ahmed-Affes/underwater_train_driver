@@ -159,7 +159,7 @@ export const SITE_CONFIG: SiteConfig = {
       fps: 24,
       width: 1920,
       height: 1080,
-      pattern: 'assets/frames/desktop/f_{index}.webp',
+      pattern: 'assets/frames/desktop/f_{index}.webp?v=4k-fr-1',
     },
     tablet: {
       id: 'tablet',
@@ -167,7 +167,7 @@ export const SITE_CONFIG: SiteConfig = {
       fps: 20,
       width: 1280,
       height: 720,
-      pattern: 'assets/frames/tablet/f_{index}.webp',
+      pattern: 'assets/frames/tablet/f_{index}.webp?v=4k-fr-1',
     },
     mobile: {
       id: 'mobile',
@@ -175,13 +175,13 @@ export const SITE_CONFIG: SiteConfig = {
       fps: 16,
       width: 960,
       height: 540,
-      pattern: 'assets/frames/mobile/f_{index}.webp',
+      pattern: 'assets/frames/mobile/f_{index}.webp?v=4k-fr-1',
     },
   },
 
   videoSources: {
-    conceptFilmMp4: 'assets/video/abyssline-concept.mp4',
-    conceptFilmPoster: 'assets/posters/ch0.webp',
+    conceptFilmMp4: 'assets/video/abyssline-concept.mp4?v=4k-fr-1',
+    conceptFilmPoster: 'assets/posters/ch0.webp?v=4k-fr-1',
   },
 
   cutTimestamps: [1.0, 1.95, 3.0, 5.0, 7.0, 9.25, 12.0, 16.25],
@@ -189,7 +189,7 @@ export const SITE_CONFIG: SiteConfig = {
   cabMedia: {
     overrideVideo: false,
     type: 'image',
-    imageWebp: 'assets/posters/ch3.webp',
+    imageWebp: 'assets/posters/ch3.webp?v=4k-fr-1',
     videoMp4: undefined,
     alt: 'Poste de pilotage panoramique du train sous-marin avec robot assistant, sonar et manette de poussée',
     robotTip: "Je garde un œil sur les capteurs. Toi, garde un œil sur l'imprévu.",
@@ -251,7 +251,7 @@ export const SITE_CONFIG: SiteConfig = {
       speedRange: [0, 72],
       accent: '#22d3ee',
       sparkleFactor: 0.0,
-      posterFallback: 'assets/posters/ch0.webp',
+      posterFallback: 'assets/posters/ch0.webp?v=4k-fr-1',
       hotspots: [],
     },
     {
@@ -274,7 +274,7 @@ export const SITE_CONFIG: SiteConfig = {
       speedRange: [72, 145],
       accent: '#2dd4bf',
       sparkleFactor: 0.06,
-      posterFallback: 'assets/posters/ch1.webp',
+      posterFallback: 'assets/posters/ch1.webp?v=4k-fr-1',
       hotspots: [],
       tabs: [
         {
@@ -314,7 +314,7 @@ export const SITE_CONFIG: SiteConfig = {
       speedRange: [145, 220],
       accent: '#34d399',
       sparkleFactor: 0.1,
-      posterFallback: 'assets/posters/ch2.webp',
+      posterFallback: 'assets/posters/ch2.webp?v=4k-fr-1',
       hotspots: [],
       tabs: [
         {
@@ -354,7 +354,7 @@ export const SITE_CONFIG: SiteConfig = {
       speedRange: [220, 260],
       accent: '#38bdf8',
       sparkleFactor: 0.12,
-      posterFallback: 'assets/posters/ch3.webp',
+      posterFallback: 'assets/posters/ch3.webp?v=4k-fr-1',
       hotspots: [],
     },
     {
@@ -377,7 +377,7 @@ export const SITE_CONFIG: SiteConfig = {
       speedRange: [260, 210],
       accent: '#fbbf24',
       sparkleFactor: 0.24,
-      posterFallback: 'assets/posters/ch4.webp',
+      posterFallback: 'assets/posters/ch4.webp?v=4k-fr-1',
       hotspots: [],
       trainingSteps: ['Études tech', 'Simulateur', 'Secours', 'Bilan médical'],
     },
@@ -401,7 +401,7 @@ export const SITE_CONFIG: SiteConfig = {
       speedRange: [210, 240],
       accent: '#f472b6',
       sparkleFactor: 1.0,
-      posterFallback: 'assets/posters/ch5.webp',
+      posterFallback: 'assets/posters/ch5.webp?v=4k-fr-1',
       hotspots: [],
       tabs: [
         {
@@ -436,7 +436,7 @@ export const SITE_CONFIG: SiteConfig = {
       speedRange: [240, 82],
       accent: '#22d3ee',
       sparkleFactor: 0.28,
-      posterFallback: 'assets/posters/ch6.webp',
+      posterFallback: 'assets/posters/ch6.webp?v=4k-fr-1',
       hotspots: [],
     },
     {
@@ -459,7 +459,7 @@ export const SITE_CONFIG: SiteConfig = {
       speedRange: [82, 0],
       accent: '#38bdf8',
       sparkleFactor: 0.1,
-      posterFallback: 'assets/posters/ch7.webp',
+      posterFallback: 'assets/posters/ch7.webp?v=4k-fr-1',
       hotspots: [],
     },
     {
@@ -482,7 +482,7 @@ export const SITE_CONFIG: SiteConfig = {
       speedRange: [0, 220],
       accent: '#fbbf24',
       sparkleFactor: 0.16,
-      posterFallback: 'assets/posters/ch8.webp',
+      posterFallback: 'assets/posters/ch8.webp?v=4k-fr-1',
       hotspots: [],
     },
   ],
