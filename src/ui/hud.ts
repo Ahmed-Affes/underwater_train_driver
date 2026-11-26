@@ -5,11 +5,9 @@
 
 import { SITE_CONFIG, HotspotConfig } from '../config/siteConfig';
 import { OceanAudioEngine } from '../audio/oceanAudio';
-import { FxOverlayCanvas } from '../canvas/fxCanvas';
 
 export class HudController {
   private audioEngine: OceanAudioEngine;
-  private fxCanvas: FxOverlayCanvas;
   private reducedMotion: boolean;
 
   private topProgressFill = document.getElementById('top-progress-fill');
@@ -42,17 +40,14 @@ export class HudController {
 
   constructor(opts: {
     audioEngine: OceanAudioEngine;
-    fxCanvas: FxOverlayCanvas;
     reducedMotion: boolean;
   }) {
     this.audioEngine = opts.audioEngine;
-    this.fxCanvas = opts.fxCanvas;
     this.reducedMotion = opts.reducedMotion;
 
     this.buildRouteMap();
     this.bindSoundToggle();
     this.bindVideoModal();
-    this.bindQuizModal();
     this.bindDossierModal();
     this.bindDismissTooltip();
     this.setActiveChapter(0);
@@ -269,9 +264,8 @@ export class HudController {
   }
 
   private bindArrivalControls(): void {
-    const ctaBtn = document.getElementById('cta-training-btn');
+    const ctaBtn = document.getElementById('cta-dossier-btn');
     const replayBtn = document.getElementById('replay-journey-btn');
-    const quizTriggerBtn = document.getElementById('open-quiz-btn');
 
     if (ctaBtn && !this.reducedMotion) {
       ctaBtn.addEventListener('mousemove', (e) => {
@@ -285,8 +279,7 @@ export class HudController {
       });
     }
 
-    ctaBtn?.addEventListener('click', () => this.openQuizModal());
-    quizTriggerBtn?.addEventListener('click', () => this.openDossierModal());
+    ctaBtn?.addEventListener('click', () => this.openDossierModal());
     replayBtn?.addEventListener('click', () => {
       if (this.onReplay) this.onReplay();
     });
@@ -321,68 +314,6 @@ export class HudController {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
     });
-  }
-
-  private openQuizModal(): void {
-    const modal = document.getElementById('training-modal');
-    const closeBtn = document.getElementById('close-training-modal');
-    if (!modal) return;
-    modal.classList.add('is-open');
-    modal.setAttribute('aria-hidden', 'false');
-    closeBtn?.focus();
-  }
-
-  private bindQuizModal(): void {
-    const modal = document.getElementById('training-modal');
-    const closeBtn = document.getElementById('close-training-modal');
-    const form = document.getElementById('training-check-form') as HTMLFormElement | null;
-    const resultEl = document.getElementById('training-result');
-
-    if (!modal) return;
-
-    const closeModal = () => {
-      modal.classList.remove('is-open');
-      modal.setAttribute('aria-hidden', 'true');
-      document.getElementById('open-quiz-btn')?.focus();
-    };
-
-    closeBtn?.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
-    });
-
-    if (form && resultEl) {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const data = new FormData(form);
-        let score = 0;
-        for (const q of SITE_CONFIG.quizQuestions) {
-          if (data.get(q.id) === q.correctValue) score++;
-        }
-
-        resultEl.hidden = false;
-        if (score === SITE_CONFIG.quizQuestions.length) {
-          this.fxCanvas.emitCelebrationBurst();
-          resultEl.innerHTML = `
-            <div class="cadet-pass-card">
-              <span class="pass-badge">PROFIL VALIDÉ // CONDUCTEUR SOUS-MARIN</span>
-              <strong>3/3 bonnes réponses — Tu as les bons réflexes !</strong>
-              <p>Maîtrise des trois savoir-faire, sang-froid en cas d'alerte et connaissance de la formation confirmés.</p>
-            </div>
-          `;
-        } else {
-          resultEl.innerHTML = `
-            <div class="cadet-pass-card is-retry">
-              <strong>${score}/3 bonnes réponses</strong>
-              <p>Indice : le conducteur réunit train, sous-marin et pilote ; reste calme et alerte la surface en cas de fuite ; et valide études, simulateur, secours et contrôles médicaux.</p>
-            </div>
-          `;
-        }
-      });
-    }
   }
 
   private bindVideoModal(): void {

@@ -78,13 +78,6 @@ export interface CabMediaConfig {
   hotspots: HotspotConfig[];
 }
 
-export interface QuizQuestion {
-  id: string;
-  prompt: string;
-  options: { value: string; label: string }[];
-  correctValue: string;
-}
-
 export interface DossierBlock {
   heading: string;
   paragraphs?: string[];
@@ -130,7 +123,6 @@ export interface SiteConfig {
     throttleFull: string;
     replayLabel: string;
     ctaPrimary: string;
-    quizButton: string;
   };
   audio: {
     enabledByDefault: boolean;
@@ -138,7 +130,6 @@ export interface SiteConfig {
     masterGain: number;
   };
   recapFacts: { label: string; value: string }[];
-  quizQuestions: QuizQuestion[];
   dossierSections: DossierSection[];
 }
 
@@ -194,32 +185,32 @@ export const SITE_CONFIG: SiteConfig = {
     type: 'image',
     imageWebp: 'assets/posters/ch3.webp?v=4k-fr-1',
     videoMp4: undefined,
-    alt: 'Poste de pilotage panoramique du train sous-marin avec robot assistant, sonar et manette de poussée',
-    robotTip: "Je garde un œil sur les capteurs. Toi, garde un œil sur l'imprévu.",
+    alt: 'Cabine du conducteur de train sous-marin avec robot assistant et écrans',
+    robotTip: "Je surveille les écrans avec toi. Reste prêt s'il y a un imprévu !",
     hotspots: [
       {
         id: 'cab-hull',
         x: 20,
         y: 69,
-        label: 'Inspection départ',
+        label: 'Avant le départ',
         description:
-          "Vérification des freins, des portes, des systèmes électriques, de l'énergie et de l'état du tunnel avant de partir.",
+          "Vérifier les freins, les portes, l'électricité, la batterie et l'état du tunnel.",
       },
       {
         id: 'cab-pressure',
         x: 50,
         y: 72,
-        label: 'Écrans & Capteurs',
+        label: 'Écrans de contrôle',
         description:
-          "Surveillance continue de la vitesse, de la pression d'eau, du niveau d'énergie et des fuites éventuelles.",
+          "Surveiller la vitesse, la pression de l'eau, l'énergie et vérifier qu'il n'y a aucune fuite.",
       },
       {
         id: 'cab-throttle',
         x: 78,
         y: 77,
-        label: "Réaction d'urgence",
+        label: "En cas de danger",
         description:
-          'En cas de fuite : rester calme, prévenir la surface, ralentir ou arrêter le train et guider les passagers.',
+          "Rester calme, appeler la surface, ralentir ou arrêter le train et aider les voyageurs.",
       },
       {
         id: 'cab-sonar',
@@ -227,7 +218,7 @@ export const SITE_CONFIG: SiteConfig = {
         y: 44,
         label: 'Centre de contrôle',
         description:
-          'Lien permanent avec le centre à la surface : confirmation de l’itinéraire, des capteurs et reprise manuelle prête.',
+          'Parler par radio avec l’équipe à la surface pour confirmer le trajet et la sécurité.',
       },
     ],
   },
@@ -237,11 +228,11 @@ export const SITE_CONFIG: SiteConfig = {
       id: 'departure',
       index: 0,
       label: 'Le métier',
-      stationCode: '01 · PRÉSENTATION DU MÉTIER',
+      stationCode: '01 · LE MÉTIER',
       headline: 'Conducteur de train sous-marin : un métier du futur',
-      subline: 'Aux commandes d’un train à grande vitesse dans un tunnel étanche au fond de l’océan.',
-      body: "Autour de sa cabine, des tonnes d'eau. Derrière lui, des centaines de passagers traversent la mer en quelques minutes, sans bateau ni avion. À l'avant, le conducteur de train sous-marin conduit, surveille et protège chaque trajet entre îles, côtes et pays.",
-      hint: 'Fais défiler pour découvrir ce métier étape par étape',
+      subline: 'Conduire un train très rapide dans un tunnel sous la mer.',
+      body: "Tout autour du train, il y a des tonnes d'eau. À l'intérieur, les voyageurs traversent la mer en quelques minutes, sans bateau et sans avion. Devant, le conducteur pilote le train, surveille les écrans et protège tout le monde.",
+      hint: 'Fais défiler pour découvrir ce métier',
       videoStart: 0.0,
       videoEnd: 1.0,
       scrollVh: 170,
@@ -260,10 +251,10 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'reef',
       index: 1,
-      label: 'Son rôle & 3 métiers',
-      stationCode: '02 · RÔLE DU CONDUCTEUR',
-      headline: 'Un métier qui combine trois professions',
-      body: 'Sous la mer, le conducteur occupe un poste unique qui réunit trois savoir-faire complémentaires :',
+      label: 'Son rôle',
+      stationCode: '02 · SON RÔLE',
+      headline: 'Un métier qui mélange 3 travaux',
+      body: "Sous l'océan, le conducteur fait un travail unique qui réunit trois rôles :",
       videoStart: 1.0,
       videoEnd: 1.95,
       scrollVh: 185,
@@ -283,34 +274,34 @@ export const SITE_CONFIG: SiteConfig = {
           bullets: [
             {
               lead: 'Conducteur de train',
-              text: 'il gère le trajet sur rails, les horaires, les arrêts en gare et la sécurité des passagers.',
+              text: "il conduit sur les rails, respecte l'horaire et s'occupe des voyageurs.",
             },
             {
-              lead: 'Équipage de sous-marin',
-              text: "il travaille sous l'eau, en espace clos, avec des procédures de sécurité rigoureuses.",
+              lead: 'Marin de sous-marin',
+              text: "il travaille sous la mer, dans un espace fermé, avec des règles de sécurité très strictes.",
             },
             {
-              lead: 'Pilote de ligne',
-              text: 'il lit écrans et capteurs haute technologie, prêt à reprendre les commandes manuelles à tout instant.',
+              lead: 'Pilote',
+              text: 'il surveille des écrans modernes et peut reprendre le contrôle à la main à tout moment.',
             },
           ],
         },
       ],
       miniStats: [
-        { label: 'Traversée', value: 'Quelques minutes' },
-        { label: 'Allure', value: 'Centaines de km/h' },
-        { label: 'Conduite', value: '100 % électrique' },
-        { label: 'Cadre de travail', value: 'Fond marin · lien surface' },
+        { label: 'Durée', value: 'Quelques minutes' },
+        { label: 'Vitesse', value: 'Très rapide' },
+        { label: 'Énergie', value: '100 % électrique' },
+        { label: 'Lieu', value: 'Sous la mer' },
       ],
     },
     {
       id: 'kelp-skyline',
       index: 2,
       label: 'Pourquoi ce métier ?',
-      stationCode: '03 · POURQUOI CE MÉTIER',
+      stationCode: '03 · POURQUOI ?',
       headline: 'Pourquoi aura-t-on besoin de ce conducteur ?',
-      body: 'Demain, traverser la mer aussi vite qu’en train exigera des spécialistes qualifiés aux commandes :',
-      fact: 'Son quotidien : garantir rapidité, transport propre et sécurité absolue au fond des océans.',
+      body: 'Demain, on voudra traverser la mer plus vite et sans polluer. Il faudra donc des pros pour conduire ces trains :',
+      fact: "En résumé : un métier pour voyager vite, proprement et en sécurité sous l'océan.",
       videoStart: 1.95,
       videoEnd: 3.0,
       scrollVh: 195,
@@ -329,20 +320,20 @@ export const SITE_CONFIG: SiteConfig = {
         {
           bullets: [
             {
-              lead: 'Gagner un temps précieux',
-              text: 'il assure des liaisons maritimes en quelques minutes au lieu de plusieurs heures de traversée.',
+              lead: 'Aller plus vite',
+              text: 'faire en quelques minutes un trajet qui prend des heures en bateau.',
             },
             {
-              lead: 'Piloter un transport propre',
-              text: 'aux commandes d’un train 100 % électrique, il remplace des trajets bien plus polluants.',
+              lead: 'Moins polluer',
+              text: "conduire un train 100 % électrique, bien plus propre que l'avion ou le bateau.",
             },
             {
-              lead: 'Conduire par tous les temps',
-              text: 'tempêtes, vagues et brouillard ne l’arrêtent pas ; son environnement reste stable sous la mer.',
+              lead: 'Zéro météo',
+              text: 'la pluie, le brouillard et les grosses vagues ne bloquent jamais le tunnel.',
             },
             {
-              lead: 'Un métier bien réel demain',
-              text: 'des conducteurs opèrent déjà sous la Manche ; ceux du futur piloteront bien plus vite et plus loin.',
+              lead: 'C’est possible',
+              text: "un train passe déjà sous la mer entre la France et l'Angleterre ; ceux de demain seront juste plus rapides.",
             },
           ],
         },
@@ -351,11 +342,11 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'cab',
       index: 3,
-      label: 'Journée type & IA',
-      stationCode: '04 · JOURNÉE TYPE',
+      label: 'Sa journée',
+      stationCode: '04 · SA JOURNÉE',
       headline: 'Dans sa cabine : vérifier, surveiller, réagir',
-      body: "L'IA l'assiste sur une grande partie de la conduite, mais le conducteur reste le décideur humain face à l'imprévu. Sa journée suit trois étapes précises :",
-      fact: 'Travail en lien direct : il reste en contact permanent avec le centre de contrôle à la surface.',
+      body: "Un ordinateur aide beaucoup à conduire, mais un humain reste toujours obligatoire en cas de problème. Sa journée a trois étapes :",
+      fact: "Il reste en contact radio tout le long du trajet avec l'équipe à la surface.",
       videoStart: 3.0,
       videoEnd: 5.0,
       scrollVh: 270,
@@ -374,16 +365,16 @@ export const SITE_CONFIG: SiteConfig = {
         {
           bullets: [
             {
-              lead: 'Avant le départ (inspection)',
-              text: 'il contrôle les freins, les portes, les circuits électriques, le niveau d’énergie et l’état du tunnel.',
+              lead: 'Avant le départ',
+              text: "il vérifie les freins, les portes, l'électricité, la batterie et l'état du tunnel.",
             },
             {
-              lead: 'Briefing avec la surface',
-              text: 'il valide l’itinéraire, la météo sous-marine du tunnel et l’état de tous les capteurs.',
+              lead: 'Avec la surface',
+              text: 'il appelle le centre de contrôle pour confirmer le trajet et vérifier les capteurs.',
             },
             {
               lead: 'Pendant le trajet',
-              text: 'il surveille vitesse, pression de l’eau, étanchéité et énergie ; au moindre voyant anormal, il agit.',
+              text: "il regarde sur les écrans la vitesse, la pression de l'eau, l'énergie et les fuites possibles.",
             },
           ],
         },
@@ -392,10 +383,10 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'sunken-arch',
       index: 4,
-      label: 'Urgences & qualités',
-      stationCode: '05 · SÉCURITÉ & QUALITÉS',
-      headline: 'Gestion d’urgence et 5 qualités clés',
-      body: 'Sous des millions de litres d’eau, le conducteur garde la tête froide. S’il détecte un incident, chaque réflexe est maîtrisé :',
+      label: 'Sécurité & qualités',
+      stationCode: '05 · SÉCURITÉ',
+      headline: 'En cas de danger et qualités nécessaires',
+      body: "Sous des millions de litres d'eau, le conducteur ne doit jamais paniquer. Si une alarme sonne, il sait quoi faire :",
       videoStart: 5.0,
       videoEnd: 7.0,
       scrollVh: 265,
@@ -412,27 +403,27 @@ export const SITE_CONFIG: SiteConfig = {
       hotspots: [],
       groups: [
         {
-          title: 'Protocole du conducteur (en cas de fuite)',
+          title: 'Si un capteur détecte une fuite',
           bullets: [
             {
-              text: 'Rester calme, alerter le centre de contrôle, ralentir ou arrêter le train, appliquer le plan de secours et guider les passagers vers les zones sûres.',
+              text: 'Rester calme, prévenir le centre de contrôle, ralentir ou arrêter le train et guider les voyageurs vers un endroit sûr.',
             },
           ],
         },
         {
-          title: 'Les 5 compétences du métier',
+          title: 'Les 5 qualités pour ce métier',
           bullets: [
             {
               lead: 'Technique',
-              text: 'comprendre électronique, mécanique et automatisation pour diagnostiquer toute alerte.',
+              text: "comprendre les machines, l'électricité et les ordinateurs.",
             },
             {
-              lead: 'Sang-froid & décision',
-              text: 'rester lucide sous pression et trancher en quelques secondes.',
+              lead: 'Calme et rapide',
+              text: 'garder son sang-froid et décider vite en cas de problème.',
             },
             {
-              lead: 'Équipe & espace clos',
-              text: 'communiquer clairement avec les ingénieurs et rester à l’aise sans vue sur le ciel.',
+              lead: 'Équipe & espace fermé',
+              text: "bien communiquer avec l'équipe et être à l'aise sans voir le ciel.",
             },
           ],
         },
@@ -443,9 +434,9 @@ export const SITE_CONFIG: SiteConfig = {
       index: 5,
       label: 'La formation',
       stationCode: '06 · FORMATION',
-      headline: 'Comment devient-on conducteur sous-marin ?',
-      body: 'Pour accéder à ce poste à haute responsabilité, le futur conducteur suit un parcours rigoureux en quatre étapes :',
-      fact: 'Un cursus complet mêlant ingénierie, pratique intensive sur simulateur et secourisme.',
+      headline: 'Comment devenir conducteur sous-marin ?',
+      body: 'Comme la sécurité des voyageurs est très importante, il faut suivre une vraie formation en 4 étapes :',
+      fact: 'Une formation sérieuse pour être prêt face à toutes les situations.',
       videoStart: 7.0,
       videoEnd: 9.25,
       scrollVh: 265,
@@ -460,25 +451,25 @@ export const SITE_CONFIG: SiteConfig = {
       sparkleFactor: 1.0,
       posterFallback: 'assets/posters/ch5.webp?v=4k-fr-1',
       hotspots: [],
-      trainingSteps: ['Études tech', 'Simulateur', 'Secours', 'Bilan médical'],
+      trainingSteps: ['Études', 'Simulateur', 'Secours', 'Santé'],
       groups: [
         {
           bullets: [
             {
-              lead: 'Études techniques ou d’ingénieur',
-              text: 'spécialisation en électronique, mécanique, automatisation ou transports.',
+              lead: 'Études techniques',
+              text: "apprendre la mécanique, l'électricité ou le fonctionnement des trains.",
             },
             {
-              lead: 'Centaines d’heures sur simulateur',
-              text: 'entraînement sur réplique exacte de la cabine face à toutes les pannes possibles.',
+              lead: 'Simulateur',
+              text: "s'entraîner des centaines d'heures dans une fausse cabine avec de fausses pannes.",
             },
             {
-              lead: 'Secours et sauvetage',
-              text: 'qualification d’urgence proche des pompiers et des sous-mariniers.',
+              lead: 'Secours',
+              text: 'apprendre à aider et sauver les gens, comme les pompiers.',
             },
             {
-              lead: 'Aptitude médicale et physique',
-              text: 'visites régulières garantissant résistance au stress et pleine forme.',
+              lead: 'Visites médicales',
+              text: 'vérifier souvent que la santé physique et morale est bonne.',
             },
           ],
         },
@@ -488,9 +479,9 @@ export const SITE_CONFIG: SiteConfig = {
       id: 'dome-approach',
       index: 6,
       label: 'Avantages & défis',
-      stationCode: '07 · BILAN DU MÉTIER',
-      headline: 'Avantages et contraintes du métier',
-      body: 'Exercer comme conducteur de train sous-marin offre des conditions exceptionnelles mais implique de vrais défis :',
+      stationCode: '07 · LE BILAN',
+      headline: 'Les bons côtés et les côtés difficiles',
+      body: 'Comme tous les métiers, celui-ci a de grands avantages mais aussi des difficultés :',
       videoStart: 9.25,
       videoEnd: 12.0,
       scrollVh: 255,
@@ -508,25 +499,25 @@ export const SITE_CONFIG: SiteConfig = {
       twoColGroups: true,
       groups: [
         {
-          title: 'Les avantages du poste',
+          title: 'Les avantages',
           tone: 'pro',
           bullets: [
-            { text: 'Rémunération élevée (métier rare et hautement qualifié).' },
-            { text: 'Outils de pointe : IA, automatisation et capteurs avancés.' },
-            { text: 'Poste hors du commun au fond de l’océan.' },
-            { text: 'Métier d’avenir engagé dans la mobilité propre.' },
-            { text: 'Forte utilité : conduire des centaines de voyageurs en sécurité.' },
+            { text: 'Un très bon salaire, car le métier est rare.' },
+            { text: 'Utiliser des écrans et outils très modernes.' },
+            { text: "Travailler dans un décor unique, sous l'océan." },
+            { text: 'Aider la planète grâce à un train propre.' },
+            { text: 'Un métier utile pour des centaines de voyageurs.' },
           ],
         },
         {
-          title: 'Les difficultés à assumer',
+          title: 'Les difficultés',
           tone: 'con',
           bullets: [
-            { text: 'Travailler sous une énorme pression hydraulique.' },
-            { text: 'Vigilance constante face aux risques de fuite ou de panne.' },
-            { text: 'Environnement confiné sans lumière du jour ni horizon.' },
-            { text: 'Lourde responsabilité envers la vie des passagers.' },
-            { text: 'Parcours de formation long et contrôles médicaux stricts.' },
+            { text: "L'énorme poids de l'eau autour du tunnel." },
+            { text: 'Le risque de panne ou de fuite à surveiller.' },
+            { text: 'Rester dans un lieu fermé, sans soleil ni air.' },
+            { text: 'Une grande responsabilité pour les passagers.' },
+            { text: 'Des études longues et des tests de santé réguliers.' },
           ],
         },
       ],
@@ -534,10 +525,10 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'platform',
       index: 7,
-      label: 'Fin de service & profil',
-      stationCode: '08 · PROFIL RECHERCHÉ',
-      headline: 'Fin de service et profil du candidat idéal',
-      body: "À l'arrivée à quai, le conducteur débarque ses passagers, rédige un rapport précis sur le moindre incident technique, puis passe le relais à la relève.",
+      label: 'Pour qui ?',
+      stationCode: '08 · POUR QUI ?',
+      headline: 'Fin du trajet et à qui convient ce métier',
+      body: "Quand le train arrive en gare, le conducteur fait sortir les voyageurs, écrit un rapport sur le trajet et laisse sa place à l'équipe suivante.",
       videoStart: 12.0,
       videoEnd: 16.25,
       scrollVh: 255,
@@ -554,15 +545,15 @@ export const SITE_CONFIG: SiteConfig = {
       hotspots: [],
       groups: [
         {
-          title: 'Ce métier te correspond-il ?',
+          title: 'Ce métier est-il fait pour toi ?',
           bullets: [
             {
-              lead: 'Fait pour toi si tu aimes',
-              text: 'la technologie et les machines, les défis, garder ton calme, travailler en équipe et porter de vraies responsabilités.',
+              lead: 'Oui, si tu aimes',
+              text: 'la technologie et les machines, les défis, rester calme, travailler en équipe et avoir des responsabilités.',
             },
             {
-              lead: 'À éviter si',
-              text: 'tu supportes difficilement les espaces clos ou la pression, ou préfères un métier sans responsabilité critique.',
+              lead: "Non, si tu n'aimes pas",
+              text: 'les endroits fermés, le stress, ou si tu préfères un travail plus calme.',
             },
           ],
         },
@@ -571,11 +562,11 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'arrival',
       index: 8,
-      label: 'Avenir du métier',
-      stationCode: '09 · AVENIR DU MÉTIER',
-      headline: 'Demain, un premier conducteur aux commandes',
-      body: "Il y a un peu plus d'un siècle, être pilote d'avion semblait impossible. Demain, le conducteur de train sous-marin sera une profession à part entière, confiée à des personnes calmes, curieuses et rigoureusement formées — capables de collaborer avec l'IA sans jamais cesser de réfléchir.",
-      fact: 'Un métier exigeant et rare, mais passionnant, bien rémunéré et indispensable à la mobilité de demain.',
+      label: "L'avenir",
+      stationCode: '09 · CONCLUSION',
+      headline: 'Et demain ?',
+      body: "Il y a cent ans, conduire un avion semblait impossible. Demain, le conducteur de train sous-marin sera un vrai métier. On aura besoin de personnes calmes, courageuses et bien formées, capables d'utiliser l'ordinateur tout en gardant leur propre jugement.",
+      fact: 'Un métier difficile, mais passionnant, utile et très bien payé.',
       videoStart: 16.25,
       videoEnd: 20.0,
       scrollVh: 270,
@@ -605,8 +596,7 @@ export const SITE_CONFIG: SiteConfig = {
     throttleCruise: 'CROISIÈRE',
     throttleFull: 'PLEIN RÉGIME',
     replayLabel: 'Revenir au début',
-    ctaPrimary: 'Tester le quiz métier (3 questions)',
-    quizButton: 'Ouvrir la fiche métier complète',
+    ctaPrimary: 'Lire la fiche complète',
   },
 
   audio: {
@@ -616,46 +606,10 @@ export const SITE_CONFIG: SiteConfig = {
   },
 
   recapFacts: [
-    { label: 'Rôle', value: 'Piloter, contrôler, sécuriser' },
-    { label: 'Qualités', value: 'Sang-froid, technique, équipe' },
-    { label: 'Formation', value: 'Ingénierie, simulateur, secours' },
-    { label: 'Bilan', value: 'Exigeant, utile, bien rémunéré' },
-  ],
-
-  quizQuestions: [
-    {
-      id: 'q1',
-      prompt: '1. Quelles trois professions le conducteur sous-marin combine-t-il ?',
-      options: [
-        { value: 'meteo', label: 'Météorologue, marin-pêcheur et guide' },
-        { value: 'trio', label: 'Conducteur de train, équipage de sous-marin et pilote' },
-      ],
-      correctValue: 'trio',
-    },
-    {
-      id: 'q2',
-      prompt: '2. Que faire en priorité si un capteur détecte une fuite ?',
-      options: [
-        {
-          value: 'calm',
-          label: 'Rester calme, prévenir le centre de contrôle, ralentir et guider les passagers',
-        },
-        { value: 'accel', label: 'Accélérer au maximum sans prévenir la surface' },
-      ],
-      correctValue: 'calm',
-    },
-    {
-      id: 'q3',
-      prompt: '3. Quel élément est indispensable pour accéder au poste ?',
-      options: [
-        {
-          value: 'sim',
-          label: 'Études techniques, centaines d’heures de simulateur, secours et bilans médicaux',
-        },
-        { value: 'permis', label: 'Un simple permis de conduire classique' },
-      ],
-      correctValue: 'sim',
-    },
+    { label: 'Rôle', value: 'Conduire et protéger le train' },
+    { label: 'Qualités', value: 'Calme, technique, équipe' },
+    { label: 'Formation', value: 'Études, simulateur, secours' },
+    { label: 'Bilan', value: 'Utile, moderne et bien payé' },
   ],
 
   dossierSections: [
@@ -667,97 +621,88 @@ export const SITE_CONFIG: SiteConfig = {
         {
           heading: 'En quoi consiste ce métier ?',
           paragraphs: [
-            "Imagine un train à grande vitesse qui roule dans un tunnel étanche posé au fond de l'océan. Autour de lui, des tonnes d'eau. À l'intérieur, des passagers qui traversent la mer en quelques minutes, sans bateau et sans avion. À l'avant : le conducteur de train sous-marin.",
-            "Il conduit, surveille et protège un train qui relie des îles, des côtes et même des pays entre eux.",
+            "Imagine un train très rapide dans un tunnel fermé au fond de l'océan. Tout autour, il y a des tonnes d'eau. À l'intérieur, des voyageurs traversent la mer en quelques minutes, sans bateau et sans avion.",
+            "Devant, c'est le conducteur de train sous-marin. Il conduit, surveille et protège le train qui relie des îles, des côtes ou des pays.",
           ],
           bullets: [
-            'Conducteur de train : gère un véhicule sur rails, ses horaires, ses arrêts et ses passagers.',
-            "Membre d'équipage de sous-marin : travaille sous l'eau, en espace fermé, avec des procédures de sécurité strictes.",
-            'Pilote : surveille des écrans, capteurs et systèmes avancés, prêt à reprendre les commandes à tout moment.',
-          ],
-        },
-        {
-          heading: 'Pourquoi ce métier existera-t-il ?',
-          bullets: [
-            'Aller plus vite : relier deux côtes séparées par la mer en quelques minutes au lieu de plusieurs heures.',
-            "Transport plus propre : un train 100 % électrique réduit fortement la pollution face aux avions et bateaux.",
-            'Météo maîtrisée : tempêtes, grosses vagues et brouillard n’arrêtent pas un train en tunnel protégé.',
-            "Pas de la pure science-fiction : le tunnel sous la Manche existe déjà et préfigure ce réseau plus rapide.",
-            "Humain et machine : l'IA automatise une grande partie de la marche, mais un humain formé reste indispensable face à l'imprévu.",
+            "Conducteur de train : conduit sur les rails, respecte l'horaire et s'occupe des voyageurs.",
+            "Marin de sous-marin : travaille sous l'eau, dans un lieu fermé, avec des règles de sécurité strictes.",
+            'Pilote : surveille des écrans modernes et reprend la main à tout moment si besoin.',
           ],
         },
         {
-          heading: 'En chiffres et idées clés',
+          heading: 'Pourquoi aura-t-on besoin de ce métier ?',
           bullets: [
-            'Durée : quelques minutes au lieu de plusieurs heures · Vitesse : plusieurs centaines de km/h',
-            "Énergie : 100 % électrique · Lieu : le fond de l'océan · Lien permanent avec le centre de contrôle",
-            "À retenir : rapidité, écologie et sécurité dans un décor que presque personne ne connaît.",
+            'Aller plus vite : traverser la mer en quelques minutes au lieu de plusieurs heures.',
+            "Moins polluer : un train 100 % électrique pollue beaucoup moins que l'avion ou le bateau.",
+            'Pas bloqué par la météo : les tempêtes, les vagues et le brouillard ne gênent pas le tunnel.',
+            "Pas que de la science-fiction : le tunnel sous la Manche existe déjà ; ceux de demain seront juste plus rapides.",
           ],
         },
       ],
     },
     {
       id: 'sec-2',
-      tabLabel: '2. Quotidien & Formation',
-      title: 'Le quotidien, les compétences et la formation',
+      tabLabel: '2. Journée & Formation',
+      title: 'Sa journée, ses qualités et sa formation',
       blocks: [
         {
-          heading: 'Trois mots : vérifier, surveiller, réagir',
+          heading: 'Trois actions : vérifier, surveiller, réagir',
           bullets: [
-            "Avant le départ (inspection) : freins, portes, systèmes électriques, niveau d'énergie et état du tunnel.",
-            "Centre de contrôle : confirmation constante de l'itinéraire, des conditions du tunnel et des capteurs avec la surface.",
-            "Pendant le trajet : surveillance des écrans — vitesse, pression de l'eau, fuites éventuelles et énergie.",
-            "En cas d'urgence : rester calme, prévenir le centre de contrôle, ralentir ou arrêter le train, suivre le plan et guider les passagers.",
-            "À l'arrivée : rédiger le rapport complet et signaler le moindre détail avant de passer le relais à l'équipe suivante.",
+            "Avant le départ : vérifier les freins, les portes, l'électricité, la batterie et le tunnel.",
+            'Avec la surface : appeler le centre de contrôle pour confirmer le trajet et les capteurs.',
+            "Pendant le trajet : regarder la vitesse, la pression de l'eau, l'énergie et les fuites possibles.",
+            'En cas de fuite : rester calme, prévenir la surface, ralentir ou arrêter le train et aider les voyageurs.',
+            "À l'arrivée : écrire un rapport complet et laisser sa place à l'équipe suivante.",
           ],
         },
         {
-          heading: 'Les 5 compétences nécessaires',
+          heading: 'Les 5 qualités nécessaires',
           bullets: [
-            'Connaissances techniques (électronique, mécanique, automatisation) pour comprendre toute alerte.',
-            'Sang-froid absolu sous des millions de litres d’eau, même quand une alarme sonne.',
-            'Rapidité de décision pour analyser un problème et agir en quelques secondes.',
-            'Travail d’équipe : communication claire et courte avec ingénieurs, techniciens et surface.',
-            'Aisance dans les espaces fermés : sans fenêtre sur le ciel ni grand air.',
+            "Comprendre la technique (machines, électricité, informatique).",
+            "Garder son calme sous des millions de litres d'eau.",
+            'Décider vite si une alarme sonne.',
+            "Savoir travailler et parler clairement avec l'équipe.",
+            'Être à l’aise dans un lieu fermé, sans voir le ciel.',
           ],
         },
         {
-          heading: 'Comment devenir conducteur ?',
+          heading: 'Comment faire ce métier ?',
           bullets: [
-            'Études techniques ou d’ingénieur : électronique, mécanique, automatisation ou transport.',
-            'Formation sur simulateur : des centaines d’heures sur une réplique exacte avec pannes simulées.',
-            'Formations de secours et sauvetage (type pompiers ou équipages de sous-marins).',
-            'Contrôles médicaux et physiques réguliers, car la sécurité passe avant tout.',
+            "Études techniques (mécanique, électricité, transports).",
+            "Centaines d'heures sur simulateur avec de fausses pannes.",
+            'Formation de secours et sauvetage (comme les pompiers).',
+            'Visites médicales régulières pour vérifier la bonne santé.',
           ],
         },
       ],
     },
     {
       id: 'sec-3',
-      tabLabel: '3. Bilan & Futur',
-      title: 'Avantages, difficultés et conclusion',
+      tabLabel: '3. Bilan & Avenir',
+      title: 'Avantages, difficultés et avenir',
       blocks: [
         {
-          heading: 'Les avantages',
+          heading: 'Les bons côtés',
           bullets: [
-            'Salaire élevé grâce à la rareté, la spécialisation et le niveau de responsabilité.',
-            "Technologie de pointe : IA, automatisation et capteurs ultra-modernes au quotidien.",
-            "Point de vue unique au fond de l'océan, impact écologique positif et fierté de mener des centaines de passagers à bon port.",
+            'Très bon salaire (métier rare et spécialisé).',
+            'Technologies modernes (écrans, capteurs, aide par ordinateur).',
+            "Lieu de travail unique sous l'océan et transport utile et propre.",
           ],
         },
         {
-          heading: 'Les difficultés',
+          heading: 'Les côtés difficiles',
           bullets: [
-            "Pression énorme de l'eau sur le tunnel et risque permanent de fuites ou de pannes.",
-            'Environnement fermé sans lumière du jour ni horizon, exigeant physiquement et mentalement.',
-            'Immense responsabilité envers les passagers et formation longue et exigeante.',
+            "Énorme pression de l'eau et risque de panne à surveiller.",
+            'Travail dans un espace fermé, sans soleil ni air libre.',
+            'Grande responsabilité pour les passagers et longue formation.',
           ],
         },
         {
-          heading: 'Ce métier est-il fait pour toi ?',
+          heading: 'Et demain ?',
           paragraphs: [
-            'Il convient à ceux qui aiment la technologie, les défis, le travail en équipe et les responsabilités ; moins à ceux qui supportent mal les espaces clos ou le stress.',
-            "Il y a un peu plus d'un siècle, voler en avion paraissait tout aussi impossible. Qui sait ? Peut-être que l'un d'entre nous sera le premier à prendre les commandes.",
+            'Ce métier convient à ceux qui aiment la technologie, les défis, rester calmes et travailler en équipe.',
+            "Il y a cent ans, conduire un avion semblait impossible. Demain, ce métier existera et aura besoin de personnes calmes et bien formées.",
           ],
         },
       ],

@@ -24,13 +24,12 @@ function renderChapterSections(): void {
         extraBlock = `
           ${ch.subline ? `<p class="hero-subline">${ch.subline}</p>` : ''}
           <p class="chapter-body">${ch.body}</p>
-          ${
-            ch.hint
-              ? `<div class="scroll-cue chapter-meta" aria-hidden="true">
+          ${ch.hint
+            ? `<div class="scroll-cue chapter-meta" aria-hidden="true">
                    <span class="scroll-cue-line"></span>
                    <span>${ch.hint}</span>
                  </div>`
-              : ''
+            : ''
           }
         `;
       } else {
@@ -45,14 +44,14 @@ function renderChapterSections(): void {
               ${g.title ? `<h3 class="chapter-group-title">${g.title}</h3>` : ''}
               <ul class="chapter-bullets">
                 ${g.bullets
-                  .map(
-                    (b) => `
+                .map(
+                  (b) => `
                   <li>
                     ${b.lead ? `<strong>${b.lead} :</strong> ` : ''}${b.text}
                   </li>
                 `
-                  )
-                  .join('')}
+                )
+                .join('')}
               </ul>
             </div>
           `
@@ -70,15 +69,15 @@ function renderChapterSections(): void {
         extraBlock += `
           <div class="mini-stats-grid chapter-meta">
             ${ch.miniStats
-              .map(
-                (s) => `
+            .map(
+              (s) => `
               <div class="mini-stat-item">
                 <span>${s.label}</span>
                 <strong>${s.value}</strong>
               </div>
             `
-              )
-              .join('')}
+            )
+            .join('')}
           </div>
         `;
       }
@@ -91,15 +90,15 @@ function renderChapterSections(): void {
         extraBlock += `
           <ol class="city-steps-rail chapter-meta" aria-label="Parcours de formation">
             ${ch.trainingSteps
-              .map(
-                (step, i) => `
+            .map(
+              (step, i) => `
               <li class="city-step-item ${i === 0 ? 'is-active' : ''}">
                 <span class="step-dot" aria-hidden="true"></span>
                 <span class="step-name">${step}</span>
               </li>
             `
-              )
-              .join('')}
+            )
+            .join('')}
           </ol>
         `;
       }
@@ -119,7 +118,7 @@ function renderChapterSections(): void {
         extraBlock += `
           <div class="arrival-actions chapter-meta">
             <div class="arrival-btn-row">
-              <button type="button" id="cta-training-btn" class="magnetic-cta">
+              <button type="button" id="cta-dossier-btn" class="magnetic-cta">
                 <span>${SITE_CONFIG.hud.ctaPrimary}</span>
                 <span aria-hidden="true">→</span>
               </button>
@@ -127,10 +126,7 @@ function renderChapterSections(): void {
                 <span>${SITE_CONFIG.hud.replayLabel}</span>
               </button>
             </div>
-            <button type="button" id="open-quiz-btn" class="quiz-link-btn">
-              ${SITE_CONFIG.hud.quizButton}
-            </button>
-            <div class="recap-grid" aria-label="Synthèse du métier">
+            <div class="recap-grid" aria-label="Résumé du métier">
               ${recapMarkup}
             </div>
           </div>
@@ -254,30 +250,6 @@ function mountCabOverlay(hud: HudController): void {
   hud.bindHotspotButtons(cabEl);
 }
 
-function renderQuizQuestions(): void {
-  const host = document.getElementById('quiz-questions-host');
-  if (!host) return;
-  host.innerHTML = SITE_CONFIG.quizQuestions
-    .map(
-      (q) => `
-    <fieldset>
-      <legend>${q.prompt}</legend>
-      ${q.options
-        .map(
-          (opt) => `
-        <label>
-          <input type="radio" name="${q.id}" value="${opt.value}" required />
-          <span>${opt.label}</span>
-        </label>
-      `
-        )
-        .join('')}
-    </fieldset>
-  `
-    )
-    .join('');
-}
-
 function renderDossierModal(): void {
   const tabsBar = document.getElementById('dossier-tabs-bar');
   const contentHost = document.getElementById('dossier-content-host');
@@ -314,11 +286,10 @@ function renderDossierModal(): void {
           <div class="dossier-block">
             <h4>${blk.heading}</h4>
             ${(blk.paragraphs || []).map((p) => `<p>${p}</p>`).join('')}
-            ${
-              blk.bullets
+            ${blk.bullets
                 ? `<ul>${blk.bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`
                 : ''
-            }
+              }
           </div>
         `
           )
@@ -349,7 +320,6 @@ async function bootstrap(): Promise<void> {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   renderChapterSections();
-  renderQuizQuestions();
   renderDossierModal();
 
   const videoCanvas = document.getElementById('video-canvas') as HTMLCanvasElement;
@@ -361,7 +331,6 @@ async function bootstrap(): Promise<void> {
 
   const hud = new HudController({
     audioEngine,
-    fxCanvas,
     reducedMotion,
   });
 
