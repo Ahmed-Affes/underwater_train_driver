@@ -30,6 +30,15 @@ export class HudController {
   private onJumpToChapter: ((idx: number) => void) | null = null;
   private onReplay: (() => void) | null = null;
   private activeChapterIndex = -1;
+  private lastTelemetry = {
+    depth: '',
+    pressure: '',
+    speed: '',
+    mode: '',
+    progress: '',
+    depthRatio: '',
+    throttleRatio: '',
+  };
 
   constructor(opts: {
     audioEngine: OceanAudioEngine;
@@ -113,39 +122,59 @@ export class HudController {
     isStarted: boolean;
   }): void {
     const { depth, pressure, speed, velocityNorm, progress, isStarted } = data;
+    const last = this.lastTelemetry;
 
-    if (this.topProgressFill) {
-      this.topProgressFill.style.transform = `scaleX(${Math.max(0.01, progress).toFixed(4)})`;
+    const progressStr = Math.max(0.01, progress).toFixed(4);
+    if (this.topProgressFill && progressStr !== last.progress) {
+      last.progress = progressStr;
+      this.topProgressFill.style.transform = `scaleX(${progressStr})`;
     }
-    if (this.depthValEl) {
-      this.depthValEl.textContent = `${Math.round(depth)}m`;
+
+    const depthStr = `${Math.round(depth)}m`;
+    if (this.depthValEl && depthStr !== last.depth) {
+      last.depth = depthStr;
+      this.depthValEl.textContent = depthStr;
     }
-    if (this.pressureValEl) {
-      this.pressureValEl.textContent = `${pressure.toFixed(1)} ATM`;
+
+    const pressureStr = `${pressure.toFixed(1)} ATM`;
+    if (this.pressureValEl && pressureStr !== last.pressure) {
+      last.pressure = pressureStr;
+      this.pressureValEl.textContent = pressureStr;
     }
+
     const depthRatio = Math.min(1, Math.max(0.01, depth / 380));
-    if (this.depthFillEl) {
-      this.depthFillEl.style.transform = `scaleY(${depthRatio.toFixed(3)})`;
-    }
-    if (this.depthMarkerEl) {
-      this.depthMarkerEl.style.top = `${(depthRatio * 100).toFixed(1)}%`;
+    const depthRatioStr = depthRatio.toFixed(3);
+    if (depthRatioStr !== last.depthRatio) {
+      last.depthRatio = depthRatioStr;
+      if (this.depthFillEl) {
+        this.depthFillEl.style.transform = `scaleY(${depthRatioStr})`;
+      }
+      if (this.depthMarkerEl) {
+        this.depthMarkerEl.style.top = `${(depthRatio * 100).toFixed(1)}%`;
+      }
     }
 
-    if (this.speedValEl) {
-      this.speedValEl.textContent = `${speed} km/h`;
+    const speedStr = `${speed} km/h`;
+    if (this.speedValEl && speedStr !== last.speed) {
+      last.speed = speedStr;
+      this.speedValEl.textContent = speedStr;
     }
-    if (this.throttleStateEl) {
-      const mode =
-        !isStarted || speed < 8
-          ? SITE_CONFIG.hud.throttleIdle
-          : velocityNorm > 0.45 || speed >= 230
-          ? SITE_CONFIG.hud.throttleFull
-          : SITE_CONFIG.hud.throttleCruise;
+
+    const mode =
+      !isStarted || speed < 8
+        ? SITE_CONFIG.hud.throttleIdle
+        : velocityNorm > 0.45 || speed >= 230
+        ? SITE_CONFIG.hud.throttleFull
+        : SITE_CONFIG.hud.throttleCruise;
+    if (this.throttleStateEl && mode !== last.mode) {
+      last.mode = mode;
       this.throttleStateEl.textContent = mode;
     }
-    if (this.throttleBarEl) {
-      const ratio = Math.min(1, Math.max(0.04, speed / 270));
-      this.throttleBarEl.style.transform = `scaleX(${ratio.toFixed(3)})`;
+
+    const throttleRatioStr = Math.min(1, Math.max(0.04, speed / 270)).toFixed(3);
+    if (this.throttleBarEl && throttleRatioStr !== last.throttleRatio) {
+      last.throttleRatio = throttleRatioStr;
+      this.throttleBarEl.style.transform = `scaleX(${throttleRatioStr})`;
     }
   }
 

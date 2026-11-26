@@ -108,13 +108,15 @@ export function initCinematicTimeline(opts: {
 
   // Lenis smooth scroll
   const lenis = new Lenis({
-    duration: reducedMotion ? 0.2 : 1.25,
+    duration: reducedMotion ? 0.2 : 0.95,
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
-    wheelMultiplier: 0.92,
+    wheelMultiplier: 1.0,
     touchMultiplier: 1.35,
   });
   lenis.on('scroll', ScrollTrigger.update);
+
+  const lastCardState = cardNodes.map(() => '');
 
   const state = {
     scrollProgress: 0,
@@ -206,13 +208,18 @@ export function initCinematicTimeline(opts: {
       scrubber.prioritizeTime(ch.videoEnd);
     }
 
-    // Strictly ONE card visible at a time with clean enter/exit envelope
+    // Strictly ONE card visible at a time with clean enter/exit envelope (memoized)
     const totalChapters = ranges.length;
     const activeEnv = computeCardEnvelope(localT, ch.index, totalChapters);
     for (let i = 0; i < cardNodes.length; i++) {
       const card = cardNodes[i];
       if (!card) continue;
-      if (i === ch.index && activeEnv > 0.01) {
+      const isVisible = i === ch.index && activeEnv > 0.01;
+      const key = isVisible ? `1:${activeEnv.toFixed(2)}` : '0';
+      if (key === lastCardState[i]) continue;
+      lastCardState[i] = key;
+
+      if (isVisible) {
         const yOffset = reducedMotion ? 0 : (1 - activeEnv) * 14;
         card.style.opacity = activeEnv.toFixed(3);
         card.style.visibility = 'visible';

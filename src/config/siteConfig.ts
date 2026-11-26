@@ -149,8 +149,8 @@ export const SITE_CONFIG: SiteConfig = {
   playbackEngine: 'frames',
   durationSec: 20.0,
   scrollMultiplier: 1.0,
-  scrubLerp: 0.1,
-  particleDensity: 175,
+  scrubLerp: 0.14,
+  particleDensity: 90,
 
   tiers: {
     desktop: {
