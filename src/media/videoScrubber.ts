@@ -255,7 +255,7 @@ export class VideoScrubber {
     scaleMultiplier: number,
     activeChapterIdx: number
   ): void {
-    const { ctx, width, height } = this;
+    const { width, height } = this;
 
     if (this.reducedMotion) {
       const poster =
@@ -278,28 +278,19 @@ export class VideoScrubber {
 
     const norm = Math.max(0, Math.min(1, timeSec / SITE_CONFIG.durationSec));
     const exactFrame = norm * (this.tier.frameCount - 1);
-    const idxA = Math.floor(exactFrame);
-    const idxB = Math.min(this.tier.frameCount - 1, idxA + 1);
-    const frac = exactFrame - idxA;
+    const idx = Math.round(exactFrame);
+    const frame = this.findNearestLoaded(idx);
 
-    const frameA = this.findNearestLoaded(idxA);
-    const frameB = this.frames[idxB];
+    if (!frame) return;
 
-    if (!frameA) return;
-
-    const drawKey = `${idxA}:${idxB}:${frac.toFixed(2)}:${focalX.toFixed(2)}:${scaleMultiplier.toFixed(4)}:${width}x${height}`;
+    const drawKey = `${idx}:${focalX.toFixed(2)}:${scaleMultiplier.toFixed(4)}:${width}x${height}`;
     if (drawKey === this.lastDrawnKey) return;
     this.lastDrawnKey = drawKey;
 
-    ctx.globalAlpha = 1;
-    this.drawCover(frameA, focalX, scaleMultiplier, 1);
-
-    // Smooth sub-frame blend eliminates stepping during ultra-slow dwell
-    if (frameB && frameB !== frameA && frac > 0.04) {
-      ctx.globalAlpha = frac;
-      this.drawCover(frameB, focalX, scaleMultiplier, 1);
-      ctx.globalAlpha = 1;
-    }
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.imageSmoothingQuality = 'high';
+    this.ctx.globalAlpha = 1;
+    this.drawCover(frame, focalX, scaleMultiplier, 1);
   }
 
   private findNearestLoaded(targetIdx: number): FrameAsset | null {

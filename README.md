@@ -38,9 +38,9 @@ This repository is ready for zero-config Vercel deployment (`vercel.json` sets `
 
 - **Stack:** Vite + TypeScript, **GSAP + ScrollTrigger**, **Lenis**, Web Audio API, and an overlay-only 2D `<canvas>` (`src/canvas/fxCanvas.ts`).
 - **Two Scrubbing Engines (`SITE_CONFIG.playbackEngine` in `src/config/siteConfig.ts`):**
-  1. **`frames` (Default — Chosen):** Progressive WebP frame sequences extracted from a 48fps `ffmpeg minterpolate` optical-flow pass (`desktop`: 1600×900 @ 318 frames, `laptop`: 1280×720 @ 239 frames, `mobile`: 960×540 @ 159 frames). Decoded via `createImageBitmap` so **both forward and backward scrubbing run in < 16ms** with sub-frame alpha blending, cut light-blooms, and per-chapter mobile `focalX` framing. The headlight preloader unlocks as soon as Chapters 0 + 1 are decoded while Chapters 2–7 stream progressively in the background.
+  1. **`frames` (Default — Chosen):** Sharpened (`lanczos + cas + unsharp`) progressive WebP frame sequences (`desktop`: 2560×1440 QHD @ 240 frames, `laptop`: 1920×1080 FHD @ 240 frames, `mobile`: 1280×720 HD @ 160 frames). Decoded via `createImageBitmap` so **both forward and backward scrubbing run cleanly** with zero sub-frame ghosting, soft cut light-blooms, and per-chapter mobile `focalX` framing. The headlight preloader unlocks as soon as Chapters 0 + 1 are decoded while Chapters 2–7 stream progressively in the background.
   2. **`video` (Optional):** All-keyframe H.264 (`-g 1`, 48fps) MP4 (`public/assets/video/abyssline-48fps-g1.mp4`) scrubbed via `video.currentTime` inside `requestAnimationFrame`.
-- **Signature Cab Interlude (Chapter 3):** Circular iris reveal into `SITE_CONFIG.cabMedia` (accepts either an image or video clip) layered with live holographic telemetry UI (Water Pressure bar, Depth, rotating Sonar sweep, Hull Integrity segments, tilting Throttle indicator, robot tip bubble, and 4 interactive hotspots).
+- **Signature Cab Interlude (Chapter 3):** Seamless camera push through the video's own cockpit dome into the live interior view, fading in aligned holographic telemetry UI (Water Pressure bar, Depth, rotating Sonar sweep, Hull Integrity segments, tilting Throttle indicator, robot tip bubble, and 4 interactive hotspots). Set `SITE_CONFIG.cabMedia.overrideVideo = true` if you want to swap in a separate still or video clip.
 
 ---
 

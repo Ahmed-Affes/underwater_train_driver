@@ -346,30 +346,36 @@ export function initCinematicTimeline(opts: {
       reducedMotion ? '0px' : `${(vel * 3.2).toFixed(2)}px`
     );
 
-    // Chapter 3 SIGNATURE CAB POV: circular iris mask reveal + live UI gauges
-    let cabFactor = 0;
+    // Chapter 3 SIGNATURE CAB POV: seamless camera dive into the REAL video cab (no teleporting cut)
+    // `cabEnter` ramps smoothly as the video approaches & passes through the cockpit glass (2.85s..3.25s)
+    let cabHudFactor = 0;
+    let cabPushZoom = 0;
     if (ch.index === 3) {
-      if (localT < 0.22) {
-        cabFactor = localT / 0.22;
-      } else if (localT > 0.82) {
-        cabFactor = (1 - localT) / 0.18;
+      if (localT < 0.28) {
+        cabPushZoom = Math.sin((localT / 0.28) * Math.PI) * 0.12;
+        cabHudFactor = Math.max(0, (localT - 0.14) / 0.14);
+      } else if (localT > 0.8) {
+        cabHudFactor = Math.max(0, (1 - localT) / 0.2);
       } else {
-        cabFactor = 1;
+        cabHudFactor = 1;
       }
     }
-    const cabEase = cabFactor * cabFactor * (3 - 2 * cabFactor);
+    const cabEase = cabHudFactor * cabHudFactor * (3 - 2 * cabHudFactor);
 
     if (cabOverlayEl) {
-      if (reducedMotion) {
-        cabOverlayEl.style.clipPath = 'none';
-        cabOverlayEl.style.opacity = ch.index === 3 ? '1' : '0';
-        cabOverlayEl.style.pointerEvents = ch.index === 3 ? 'auto' : 'none';
-      } else {
+      if (SITE_CONFIG.cabMedia.overrideVideo && !reducedMotion) {
         const radius = (cabEase * 82).toFixed(1);
         cabOverlayEl.style.clipPath = `circle(${radius}% at 50% 48%)`;
         cabOverlayEl.style.opacity = cabEase > 0.02 ? '1' : '0';
-        cabOverlayEl.style.pointerEvents = cabEase > 0.55 ? 'auto' : 'none';
+      } else {
+        cabOverlayEl.style.clipPath = 'none';
+        cabOverlayEl.style.opacity = cabEase.toFixed(3);
+        cabOverlayEl.style.transform = reducedMotion
+          ? 'none'
+          : `scale(${(0.95 + cabEase * 0.05).toFixed(4)})`;
       }
+      cabOverlayEl.style.pointerEvents = cabEase > 0.45 ? 'auto' : 'none';
+
       if (cabVideoEl) {
         if (cabEase > 0.2 && cabVideoEl.paused) {
           cabVideoEl.play().catch(() => {});
@@ -412,12 +418,11 @@ export function initCinematicTimeline(opts: {
       });
     }
 
-    // Idle breathing (1-1.6%) + subtle speed zoom (1-3%) + cut scale push
-    const idleBreath = reducedMotion ? 0 : 0.008 * (0.5 + 0.5 * Math.sin(timeSec * 0.9));
-    const speedZoom = reducedMotion ? 0 : vel * 0.025;
-    const cutPush = cutBloom * 0.018;
-    const cabApproachZoom = ch.index === 3 && !reducedMotion ? cabEase * 0.04 : 0;
-    const scaleMultiplier = 1 + idleBreath + speedZoom + cutPush + cabApproachZoom;
+    // Idle breathing (1-1.4%) + subtle speed zoom (1-2.2%) + seamless cab push
+    const idleBreath = reducedMotion ? 0 : 0.006 * (0.5 + 0.5 * Math.sin(timeSec * 0.9));
+    const speedZoom = reducedMotion ? 0 : vel * 0.022;
+    const cutPush = cutBloom * 0.014;
+    const scaleMultiplier = 1 + idleBreath + speedZoom + cutPush + (reducedMotion ? 0 : cabPushZoom);
 
     // Interpolate mobile focal crop smoothly into next chapter near boundaries
     const focalX = lerp(ch.focalX, nextCh.focalX, gradeBlend);

@@ -74,6 +74,8 @@ export interface TierSpec {
 }
 
 export interface CabMediaConfig {
+  /** Set true only if replacing the video's native cab shot with a custom still/clip */
+  overrideVideo: boolean;
   type: 'image' | 'video';
   imageAvif?: string;
   imageWebp: string;
@@ -155,26 +157,26 @@ export const SITE_CONFIG: SiteConfig = {
   tiers: {
     desktop: {
       id: 'desktop',
-      frameCount: 318,
-      fps: 32,
-      width: 1600,
-      height: 900,
+      frameCount: 240,
+      fps: 24,
+      width: 2560,
+      height: 1440,
       pattern: 'assets/frames/desktop/f_{index}.webp',
     },
     laptop: {
       id: 'laptop',
-      frameCount: 239,
+      frameCount: 240,
       fps: 24,
-      width: 1280,
-      height: 720,
+      width: 1920,
+      height: 1080,
       pattern: 'assets/frames/laptop/f_{index}.webp',
     },
     mobile: {
       id: 'mobile',
-      frameCount: 159,
+      frameCount: 160,
       fps: 16,
-      width: 960,
-      height: 540,
+      width: 1280,
+      height: 720,
       pattern: 'assets/frames/mobile/f_{index}.webp',
     },
   },
@@ -189,41 +191,42 @@ export const SITE_CONFIG: SiteConfig = {
   cutTimestamps: [0.95, 1.85, 2.95, 4.02, 5.35, 7.05, 8.5],
 
   cabMedia: {
+    overrideVideo: false,
     type: 'image',
     imageAvif: 'assets/chapters/cab.avif',
     imageWebp: 'assets/chapters/cab.webp',
-    videoMp4: undefined, // Drop a cab .mp4 path here and set type: 'video' to swap!
+    videoMp4: undefined, // Set overrideVideo: true and drop a cab .mp4 path here to swap!
     alt: 'Panoramic underwater train driver cab overlooking sunlit coral reefs',
     robotTip: "I'll keep an eye on the sensors. You keep an eye on the view.",
     hotspots: [
       {
-        id: 'cab-pressure',
-        x: 34,
-        y: 54,
-        label: 'Pressure Screen',
-        description:
-          'Monitors exterior sea pressure in real time while keeping cabin air locked at a comfortable 1.0 ATM.',
-      },
-      {
         id: 'cab-hull',
-        x: 24,
-        y: 66,
+        x: 18,
+        y: 48,
         label: 'Hull Panel',
         description:
           'Tracks micro-strain sensors across all five titanium-glass cars so the seal stays 100% sound.',
       },
       {
+        id: 'cab-pressure',
+        x: 28,
+        y: 59,
+        label: 'Pressure Screen',
+        description:
+          'Monitors exterior sea pressure in real time while keeping cabin air locked at a comfortable 1.0 ATM.',
+      },
+      {
         id: 'cab-throttle',
         x: 50,
-        y: 74,
+        y: 77,
         label: 'Throttle Lever',
         description:
           'Balances smooth magnetic propulsion so acceleration feels weightless for every passenger.',
       },
       {
         id: 'cab-sonar',
-        x: 74,
-        y: 55,
+        x: 75,
+        y: 57,
         label: 'Sonar',
         description:
           'Sweeps four kilometers ahead to spot currents, reef life, and approaching station locks early.',

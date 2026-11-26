@@ -131,13 +131,14 @@ function mountCabOverlay(hud: HudController): void {
   if (!cabEl) return;
 
   const { cabMedia } = SITE_CONFIG;
-  const mediaHtml =
-    cabMedia.type === 'video' && cabMedia.videoMp4
+  const mediaHtml = cabMedia.overrideVideo
+    ? cabMedia.type === 'video' && cabMedia.videoMp4
       ? `<video id="cab-video-player" class="cab-media-el" src="${cabMedia.videoMp4}" muted loop playsinline preload="metadata"></video>`
       : `<picture class="cab-media-el">
            ${cabMedia.imageAvif ? `<source type="image/avif" srcset="${cabMedia.imageAvif}" />` : ''}
            <img src="${cabMedia.imageWebp}" alt="${cabMedia.alt}" loading="lazy" decoding="async" />
-         </picture>`;
+         </picture>`
+    : '';
 
   const hotspotsHtml = cabMedia.hotspots
     .map(
