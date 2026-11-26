@@ -1,23 +1,27 @@
 /**
- * SINGLE SOURCE OF TRUTH — ABYSSLINE 04 CONFIGURATION
+ * CONFIGURATION CENTRALE — ABYSSLINE 04 (FR)
  * ---------------------------------------------------------------------------
- * Edit anything here without touching timeline, rendering, or HUD code:
- *  - Video playback engine ('frames' progressive WebP vs 'video' MP4)
- *  - Quality tiers (desktop / tablet / mobile)
- *  - Cab media slot (native video moment OR custom image/video override)
- *  - Chapter timestamps, scrollVh (~100vh/s -> 2000vh total), dwell weights,
- *    text placement, mobile focalX, depth, pressure, speed, copy, hotspots,
- *    HUD strings, audio & quiz.
+ * Source unique pour :
+ *  - Le moteur vidéo ('frames' WebP progressif ou 'video' MP4 direct)
+ *  - Les 3 paliers de qualité (desktop 1080p supersamplé 4K, tablette 720p, mobile 540p)
+ *  - Les 9 chapitres calés sur toute la vidéo (0.00s -> 20.00s sans coupure)
+ *  - Les onglets interactifs, le poste de pilotage, le dossier complet & le quiz
  */
 
 export type TextSide = 'left' | 'right' | 'top-left';
 
 export interface HotspotConfig {
   id: string;
-  x: number; // viewport percentage (0-100)
-  y: number; // viewport percentage (0-100)
+  x: number;
+  y: number;
   label: string;
   description: string;
+}
+
+export interface ChapterTab {
+  id: string;
+  label: string;
+  text: string;
 }
 
 export interface ChapterConfig {
@@ -30,18 +34,12 @@ export interface ChapterConfig {
   body: string;
   fact?: string;
   hint?: string;
-  /** Exact source video timestamps (seconds, 0.00 - 20.00) */
   videoStart: number;
   videoEnd: number;
-  /** Relative scroll height in vh (scaled by scrollMultiplier) */
   scrollVh: number;
-  /** 0.0 (linear) to 0.75 (long calm dwell in the middle of the chapter) */
   dwell: number;
-  /** Desktop placement so text sits in left/right third and never covers the train */
   textSide: TextSide;
-  /** Vertical alignment for desktop editorial panel ('top' | 'mid' | 'bottom') */
   textVertical: 'top' | 'mid' | 'bottom';
-  /** Mobile portrait horizontal crop center (0.0 left .. 0.5 center .. 1.0 right) */
   focalX: number;
   depthRange: [number, number];
   pressureRange: [number, number];
@@ -50,12 +48,11 @@ export interface ChapterConfig {
   sparkleFactor: number;
   posterFallback: string;
   hotspots: HotspotConfig[];
+  tabs?: ChapterTab[];
   trainingSteps?: string[];
   compensationCard?: {
     title: string;
-    salary: string;
-    schedule: string;
-    perks: string;
+    items: string[];
   };
 }
 
@@ -69,7 +66,6 @@ export interface TierSpec {
 }
 
 export interface CabMediaConfig {
-  /** False = uses the video's native Command Cab shot directly (no duplicate interlude) */
   overrideVideo: boolean;
   type: 'image' | 'video';
   imageWebp: string;
@@ -86,66 +82,75 @@ export interface QuizQuestion {
   correctValue: string;
 }
 
+export interface DossierBlock {
+  heading: string;
+  paragraphs?: string[];
+  bullets?: string[];
+}
+
+export interface DossierSection {
+  id: string;
+  tabLabel: string;
+  title: string;
+  blocks: DossierBlock[];
+}
+
 export interface SiteConfig {
   brand: {
     title: string;
     sector: string;
     skipLink: string;
   };
-  /**
-   * 'frames' = progressive WebP canvas sequence (zero backward-scrub stutter)
-   * 'video'  = single MP4 scrubbed via video.currentTime
-   */
   playbackEngine: 'frames' | 'video';
   durationSec: number;
-  /** Global multiplier applied to every chapter's scrollVh (1.0 -> 2000vh, ~100vh/s) */
   scrollMultiplier: number;
-  /** Smoothing factor for target time lerp (0.08 - 0.12 recommended) */
   scrubLerp: number;
-  /** Particle count ceiling on desktop (scaled down automatically on mobile) */
   particleDensity: number;
   tiers: Record<'desktop' | 'tablet' | 'mobile', TierSpec>;
   videoSources: {
     conceptFilmMp4: string;
     conceptFilmPoster: string;
   };
-  /** Verified cut/transition timestamps (seconds) across the 20.00s route */
   cutTimestamps: number[];
   cabMedia: CabMediaConfig;
   chapters: ChapterConfig[];
   hud: {
     conceptButton: string;
+    dossierButton: string;
     audioOff: string;
     audioOn: string;
     depthLabel: string;
     pressureLabel: string;
     throttleLabel: string;
+    throttleIdle: string;
+    throttleCruise: string;
+    throttleFull: string;
     replayLabel: string;
     ctaPrimary: string;
     quizButton: string;
   };
   audio: {
     enabledByDefault: boolean;
-    /** Optional external ambience loop URL; null uses built-in Web Audio synth */
     oceanTrackUrl: string | null;
     masterGain: number;
   };
   recapFacts: { label: string; value: string }[];
   quizQuestions: QuizQuestion[];
+  dossierSections: DossierSection[];
 }
 
 export const SITE_CONFIG: SiteConfig = {
   brand: {
     title: 'ABYSSLINE',
-    sector: 'SECTOR 04',
-    skipLink: 'Skip to journey story',
+    sector: 'SECTEUR 04',
+    skipLink: 'Aller au récit du voyage',
   },
 
   playbackEngine: 'frames',
   durationSec: 20.0,
   scrollMultiplier: 1.0,
   scrubLerp: 0.1,
-  particleDensity: 180,
+  particleDensity: 175,
 
   tiers: {
     desktop: {
@@ -179,48 +184,47 @@ export const SITE_CONFIG: SiteConfig = {
     conceptFilmPoster: 'assets/posters/ch0.webp',
   },
 
-  // Measured scene-cut / morph timestamps from 480-frame diff inspection
   cutTimestamps: [1.0, 1.95, 3.0, 5.0, 7.0, 9.25, 12.0, 16.25],
 
   cabMedia: {
     overrideVideo: false,
     type: 'image',
     imageWebp: 'assets/posters/ch3.webp',
-    videoMp4: undefined, // Set overrideVideo: true and drop a cab .mp4 path here if replacing the native cab shot
-    alt: 'Panoramic underwater train command cab with co-pilot robot, sonar console, and throttle joystick',
-    robotTip: "I'll keep an eye on the sensors. You keep an eye on the view.",
+    videoMp4: undefined,
+    alt: 'Poste de pilotage panoramique du train sous-marin avec robot assistant, sonar et manette de poussée',
+    robotTip: "Je garde un œil sur les capteurs. Toi, garde un œil sur l'imprévu.",
     hotspots: [
       {
         id: 'cab-hull',
         x: 20,
         y: 69,
-        label: 'Co-Pilot & Hull',
+        label: 'Avant le départ',
         description:
-          'Tracks micro-strain sensors across all pressurized cars so the titanium-glass seal stays 100% sound.',
+          "Inspection complète : vérification des freins, des portes, des systèmes électriques, de l'énergie et de l'état du tunnel.",
       },
       {
         id: 'cab-pressure',
         x: 50,
         y: 72,
-        label: 'Sonar Console',
+        label: 'Surveillance & Pression',
         description:
-          'Monitors exterior sea pressure and forward sonar sweep while keeping cabin air locked at 1.0 ATM.',
+          "Contrôle permanent de la vitesse, de la pression d'eau autour du tunnel, du niveau d'énergie et des fuites éventuelles.",
       },
       {
         id: 'cab-throttle',
         x: 78,
         y: 77,
-        label: 'Throttle Joystick',
+        label: "En cas d'urgence",
         description:
-          'Balances smooth magnetic propulsion so acceleration feels weightless for every passenger.',
+          'Si un capteur signale une fuite : rester calme, prévenir le centre de contrôle, ralentir ou arrêter le train et guider les passagers.',
       },
       {
         id: 'cab-sonar',
         x: 66,
         y: 44,
-        label: 'Windshield HUD',
+        label: 'Centre de contrôle',
         description:
-          'Projects ocean currents, reef depth contours, and arch clearance directly onto the canopy.',
+          'Liaison permanente avec la surface : confirmation de l’itinéraire, des conditions du tunnel et reprise manuelle possible à tout moment.',
       },
     ],
   },
@@ -229,22 +233,22 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'departure',
       index: 0,
-      label: 'Departure',
+      label: 'Le métier',
       stationCode: 'STN-00',
-      headline: 'Underwater Train Driver',
-      subline: 'Your office is the ocean floor.',
-      body: 'Emerge from the illuminated departure tunnel in a silent, pressurized maglev built for wonder.',
-      hint: 'Scroll to start the engine',
+      headline: 'Conducteur de train sous-marin',
+      subline: 'Un métier du futur au fond de l’océan.',
+      body: "Imagine un train à grande vitesse dans un tunnel étanche sous la mer : des tonnes d'eau autour, des voyageurs à bord, et toi aux commandes.",
+      hint: 'Fais défiler pour prendre les commandes',
       videoStart: 0.0,
       videoEnd: 1.0,
-      scrollVh: 155,
+      scrollVh: 160,
       dwell: 0.35,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.44,
       depthRange: [0, 18],
       pressureRange: [1.0, 2.8],
-      speedRange: [0, 68],
+      speedRange: [0, 72],
       accent: '#22d3ee',
       sparkleFactor: 0.0,
       posterFallback: 'assets/posters/ch0.webp',
@@ -253,67 +257,101 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'reef',
       index: 1,
-      label: 'Coral Reef',
+      label: '3 professions',
       stationCode: 'MRK-01',
-      headline: 'Leave the surface behind',
-      body: 'Carry travelers over sunlit coral reefs on a magnetic rail—smooth, silent, and right on schedule.',
-      fact: 'Average route: 42 km · 38 minutes',
+      headline: 'Trois métiers réunis en un',
+      body: 'Tu relies îles, côtes et pays en quelques minutes au lieu de plusieurs heures en bateau, en lien constant avec la surface.',
+      fact: 'Trajet : quelques minutes · 100 % électrique · Fond de l’océan',
       videoStart: 1.0,
       videoEnd: 1.95,
-      scrollVh: 145,
-      dwell: 0.35,
+      scrollVh: 165,
+      dwell: 0.42,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.44,
       depthRange: [18, 46],
       pressureRange: [2.8, 5.6],
-      speedRange: [68, 124],
+      speedRange: [72, 145],
       accent: '#2dd4bf',
       sparkleFactor: 0.06,
       posterFallback: 'assets/posters/ch1.webp',
       hotspots: [],
+      tabs: [
+        {
+          id: 'train',
+          label: 'Train',
+          text: 'Conducteur de train : gère le convoi sur rails, les horaires, les arrêts et le confort des passagers.',
+        },
+        {
+          id: 'sub',
+          label: 'Sous-marin',
+          text: 'Équipage de sous-marin : travaille sous la mer en espace fermé avec des procédures de sécurité strictes.',
+        },
+        {
+          id: 'pilot',
+          label: 'Pilote',
+          text: 'Pilote : surveille écrans, capteurs et systèmes avancés, prêt à reprendre les commandes à tout instant.',
+        },
+      ],
     },
     {
       id: 'kelp-skyline',
       index: 2,
-      label: 'Kelp & Skyline',
+      label: 'Pourquoi demain',
       stationCode: 'MRK-02',
-      headline: 'Calm is a skill',
-      body: 'Thread between swaying golden kelp as the sunken city domes rise ahead. Steady hands keep every passenger relaxed.',
-      fact: 'Core skills: composure, precision, care',
+      headline: 'Plus vite, propre, hors météo',
+      body: 'Tempêtes, vagues et brouillard bloquent bateaux et avions, pas le tunnel. Propre et électrique, il prolonge déjà le tunnel sous la Manche.',
+      fact: 'Inspiration réelle : le tunnel sous la Manche existe déjà',
       videoStart: 1.95,
       videoEnd: 3.0,
-      scrollVh: 165,
-      dwell: 0.46,
+      scrollVh: 175,
+      dwell: 0.48,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.5,
       depthRange: [46, 84],
       pressureRange: [5.6, 9.4],
-      speedRange: [124, 152],
+      speedRange: [145, 220],
       accent: '#34d399',
       sparkleFactor: 0.1,
       posterFallback: 'assets/posters/ch2.webp',
       hotspots: [],
+      tabs: [
+        {
+          id: 'speed',
+          label: 'Rapidité',
+          text: 'Relier deux côtes séparées par la mer en quelques minutes à plusieurs centaines de km/h.',
+        },
+        {
+          id: 'eco',
+          label: 'Écologie',
+          text: '100 % électrique : une alternative bien moins polluante que les traversées en avion ou en bateau.',
+        },
+        {
+          id: 'weather',
+          label: 'Météo',
+          text: 'Dans un tunnel protégé au fond de l’eau, le train circule en toute saison malgré les tempêtes.',
+        },
+      ],
     },
     {
       id: 'cab',
       index: 3,
-      label: 'Command Cab',
+      label: 'Le poste de pilotage',
       stationCode: 'POV-03',
-      headline: 'Step inside your command cab',
-      body: 'No weather forecasts. Just pressure readings, sonar sweeps, and a co-pilot bot beside your throttle.',
-      fact: 'Telemetry: pressure, depth, sonar, hull & speed',
+      headline: 'Humain et machine aux commandes',
+      body: "L'IA assure une grande partie de la conduite, mais seul un humain sait décider quand survient l'imprévu.",
+      fact: 'Journée type : vérifier, surveiller, réagir (touche les points)',
       videoStart: 3.0,
       videoEnd: 5.0,
-      scrollVh: 260,
+      scrollVh: 265,
       dwell: 0.56,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.5,
       depthRange: [84, 136],
       pressureRange: [9.4, 14.6],
-      speedRange: [152, 166],
+      speedRange: [220, 260],
       accent: '#38bdf8',
       sparkleFactor: 0.12,
       posterFallback: 'assets/posters/ch3.webp',
@@ -322,74 +360,80 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'sunken-arch',
       index: 4,
-      label: 'Sunken Arch',
+      label: 'Compétences & formation',
       stationCode: 'STN-04',
-      headline: 'Earn your arch crossing',
-      body: 'Train in the simulator, pass hull-safety certification, then pilot straight through the sunken city arch.',
-      fact: 'Path: 300 simulator hours + hull certification',
+      headline: 'Compétences et parcours exigeant',
+      body: "Études techniques, centaines d'heures sur simulateur de pannes, secours sous-marins et contrôles médicaux réguliers.",
+      fact: '5 atouts clés : technique, sang-froid, décision, équipe, espace clos',
       videoStart: 5.0,
       videoEnd: 7.0,
-      scrollVh: 250,
+      scrollVh: 255,
       dwell: 0.54,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.5,
       depthRange: [136, 232],
       pressureRange: [14.6, 24.2],
-      speedRange: [166, 142],
+      speedRange: [260, 210],
       accent: '#fbbf24',
       sparkleFactor: 0.24,
       posterFallback: 'assets/posters/ch4.webp',
       hotspots: [],
-      trainingSteps: ['Simulator', 'Certification', 'First solo run'],
+      trainingSteps: ['Études tech', 'Simulateur', 'Secours', 'Bilan médical'],
     },
     {
       id: 'glow-zone',
       index: 5,
-      label: 'Glow Zone',
+      label: 'Avantages & défis',
       stationCode: 'TRN-05',
-      headline: 'Deepest point, calmest hands',
-      body: 'At 380 meters, glowing jellyfish drift beside the rail while a whale shark glides overhead.',
-      fact: 'Challenges: pressure monitoring · Rewards: the best view in any career',
+      headline: 'Avantages et difficultés des abysses',
+      body: 'À 380 m, la pression est colossale et chaque décision engage la vie des passagers. En retour : un métier rare, utile et fascinant.',
+      fact: 'À retenir : rapidité, écologie, sécurité et maîtrise sous pression',
       videoStart: 7.0,
       videoEnd: 9.25,
-      scrollVh: 270,
+      scrollVh: 275,
       dwell: 0.55,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.5,
       depthRange: [232, 380],
       pressureRange: [24.2, 38.0],
-      speedRange: [142, 162],
+      speedRange: [210, 240],
       accent: '#f472b6',
       sparkleFactor: 1.0,
       posterFallback: 'assets/posters/ch5.webp',
       hotspots: [],
-      compensationCard: {
-        title: 'Career Snapshot (Concept Values)',
-        salary: 'Salary range (concept): $62,000–$95,000 per year',
-        schedule: 'Schedule: 4 days on, 3 off',
-        perks: 'Perks: sea-view housing, free train pass',
-      },
+      tabs: [
+        {
+          id: 'pros',
+          label: 'Avantages',
+          text: 'Salaire élevé · Technologie IA & capteurs · Décor océanique unique · Transport propre · Travail utile et fier.',
+        },
+        {
+          id: 'cons',
+          label: 'Difficultés',
+          text: 'Pression énorme · Risque de fuites/pannes · Espace fermé sans lumière du jour · Lourde responsabilité · Longue formation.',
+        },
+      ],
     },
     {
       id: 'dome-approach',
       index: 6,
-      label: 'Dome Terminal',
+      label: 'Pour toi ?',
       stationCode: 'STN-06',
-      headline: 'Approach the Glass Dome',
-      body: 'Ease off the magnetic throttle as the illuminated geodesic station rises from the ocean floor.',
-      fact: 'Auto-align docking beacons: active at 400m',
+      headline: 'Ce métier est-il fait pour toi ?',
+      body: 'Idéal si tu aimes la technologie, le travail en équipe, les défis et garder ton calme. Plus dur si les espaces clos te pèsent.',
+      fact: 'Sang-froid : garder son calme même quand une alarme sonne',
       videoStart: 9.25,
       videoEnd: 12.0,
-      scrollVh: 230,
+      scrollVh: 225,
       dwell: 0.45,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.42,
       depthRange: [380, 128],
       pressureRange: [38.0, 13.8],
-      speedRange: [162, 62],
+      speedRange: [240, 82],
       accent: '#22d3ee',
       sparkleFactor: 0.28,
       posterFallback: 'assets/posters/ch6.webp',
@@ -398,21 +442,21 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'platform',
       index: 7,
-      label: 'Platform Stop',
+      label: 'Quai & rapport',
       stationCode: 'STN-07',
-      headline: 'Doors open beneath the sea',
-      body: 'Hold zero drift at the yellow safety line as commuters board beneath the arched aquarium canopy.',
-      fact: 'Docking speed: 0 km/h · Glass-Dome Terminal',
+      headline: 'À l’arrivée : le rapport technique',
+      body: "Une fois les passagers descendus en sécurité, tu notes le moindre détail inhabituel puis tu passes le train à l'équipe suivante.",
+      fact: 'Vitesse à quai : 0 km/h · Contrôle complet avant chaque relève',
       videoStart: 12.0,
       videoEnd: 16.25,
-      scrollVh: 265,
+      scrollVh: 255,
       dwell: 0.52,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.46,
       depthRange: [128, 48],
       pressureRange: [13.8, 5.8],
-      speedRange: [62, 0],
+      speedRange: [82, 0],
       accent: '#38bdf8',
       sparkleFactor: 0.1,
       posterFallback: 'assets/posters/ch7.webp',
@@ -421,21 +465,21 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'arrival',
       index: 8,
-      label: 'Ready to Drive',
+      label: 'Le futur',
       stationCode: 'STN-08',
-      headline: 'Ready to drive?',
-      body: 'Glide out into sunlit waters beneath a soaring manta ray—your first train is waiting.',
-      fact: 'Daily shift: 3–4 runs · Next stop: Horizon Spire',
+      headline: 'Prêt à prendre les commandes ?',
+      body: "Il y a un siècle, voler en avion semblait fou. Demain, l'un d'entre nous sera peut-être le premier conducteur sous l'océan.",
+      fact: "Un métier d'avenir entre intelligence artificielle et sang-froid humain",
       videoStart: 16.25,
       videoEnd: 20.0,
-      scrollVh: 260,
+      scrollVh: 265,
       dwell: 0.44,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.5,
       depthRange: [48, 28],
       pressureRange: [5.8, 3.8],
-      speedRange: [0, 148],
+      speedRange: [0, 220],
       accent: '#fbbf24',
       sparkleFactor: 0.16,
       posterFallback: 'assets/posters/ch8.webp',
@@ -444,15 +488,19 @@ export const SITE_CONFIG: SiteConfig = {
   ],
 
   hud: {
-    conceptButton: 'Concept Film',
-    audioOff: 'Ocean Audio: Off',
-    audioOn: 'Ocean Audio: On',
-    depthLabel: 'DEPTH',
-    pressureLabel: 'PRESSURE',
-    throttleLabel: 'THROTTLE',
-    replayLabel: 'Replay the journey',
-    ctaPrimary: 'Start your training',
-    quizButton: 'Pre-Run Driver Check',
+    conceptButton: 'Vidéo 4K complète',
+    dossierButton: 'Dossier complet',
+    audioOff: 'Audio océan : Non',
+    audioOn: 'Audio océan : Oui',
+    depthLabel: 'PROFONDEUR',
+    pressureLabel: 'PRESSION',
+    throttleLabel: 'PROPULSION',
+    throttleIdle: 'VEILLE',
+    throttleCruise: 'CROISIÈRE',
+    throttleFull: 'PLEIN RÉGIME',
+    replayLabel: 'Rejouer le voyage',
+    ctaPrimary: 'Lire le dossier complet',
+    quizButton: "Test d'aptitude (3 questions)",
   },
 
   audio: {
@@ -462,39 +510,145 @@ export const SITE_CONFIG: SiteConfig = {
   },
 
   recapFacts: [
-    { label: 'What you do', value: 'Pilot 42 km ocean rail runs' },
-    { label: 'Skills', value: 'Calm, precision, care' },
-    { label: 'Training', value: '300h sim + hull cert' },
-    { label: 'Reward', value: '$62k–$95k concept + 4/3 shifts' },
+    { label: 'Mission', value: 'Relier les côtes en minutes' },
+    { label: 'Énergie', value: '100 % électrique · hors météo' },
+    { label: 'Formation', value: 'Ingénierie + simulateur + secours' },
+    { label: 'Profil', value: 'Sang-froid, technique, équipe' },
   ],
 
   quizQuestions: [
     {
       id: 'q1',
-      prompt: '1. Inside the command cab, what do drivers monitor instead of weather?',
+      prompt: '1. Quelles trois professions le conducteur sous-marin combine-t-il ?',
       options: [
-        { value: 'wind', label: 'Surface wind forecasts' },
-        { value: 'pressure', label: 'Water pressure & sonar readings' },
+        { value: 'meteo', label: 'Météorologue, marin-pêcheur et guide' },
+        { value: 'trio', label: 'Conducteur de train, équipage de sous-marin et pilote' },
       ],
-      correctValue: 'pressure',
+      correctValue: 'trio',
     },
     {
       id: 'q2',
-      prompt: '2. What guides your composure at the 380m Glow Zone?',
+      prompt: '2. Que faire en priorité si un capteur détecte une fuite ?',
       options: [
-        { value: 'steady', label: 'Steady throttle watch beside bioluminescent sea life' },
-        { value: 'blind', label: 'Shutting off sonar and running full speed' },
+        { value: 'calm', label: 'Rester calme, prévenir le centre de contrôle, ralentir et guider les passagers' },
+        { value: 'accel', label: 'Accélérer au maximum sans prévenir la surface' },
       ],
-      correctValue: 'steady',
+      correctValue: 'calm',
     },
     {
       id: 'q3',
-      prompt: '3. What qualifies you for your first solo city arch crossing?',
+      prompt: '3. Quel élément est indispensable pour accéder au poste ?',
       options: [
-        { value: '40', label: '40 hours of surface rail practice' },
-        { value: '300', label: '300 hours + hull certification' },
+        { value: 'sim', label: 'Études techniques, centaines d’heures de simulateur, secours et bilans médicaux' },
+        { value: 'permis', label: 'Un simple permis de conduire classique' },
       ],
-      correctValue: '300',
+      correctValue: 'sim',
+    },
+  ],
+
+  dossierSections: [
+    {
+      id: 'sec-1',
+      tabLabel: '1. Le métier',
+      title: 'Conducteur de train sous-marin : un métier du futur',
+      blocks: [
+        {
+          heading: 'En quoi consiste ce métier ?',
+          paragraphs: [
+            "Imagine un train à grande vitesse qui roule dans un tunnel étanche posé au fond de l'océan. Autour de lui, des tonnes d'eau. À l'intérieur, des passagers qui traversent la mer en quelques minutes, sans bateau et sans avion. À l'avant : le conducteur de train sous-marin.",
+            "Il conduit, surveille et protège un train qui relie des îles, des côtes et même des pays entre eux.",
+          ],
+          bullets: [
+            'Conducteur de train : gère un véhicule sur rails, ses horaires, ses arrêts et ses passagers.',
+            "Membre d'équipage de sous-marin : travaille sous l'eau, en espace fermé, avec des procédures de sécurité strictes.",
+            'Pilote : surveille des écrans, capteurs et systèmes avancés, prêt à reprendre les commandes à tout moment.',
+          ],
+        },
+        {
+          heading: 'Pourquoi ce métier existera-t-il ?',
+          bullets: [
+            'Aller plus vite : relier deux côtes séparées par la mer en quelques minutes au lieu de plusieurs heures.',
+            "Transport plus propre : un train 100 % électrique réduit fortement la pollution face aux avions et bateaux.",
+            'Météo maîtrisée : tempêtes, grosses vagues et brouillard n’arrêtent pas un train en tunnel protégé.',
+            "Pas de la pure science-fiction : le tunnel sous la Manche existe déjà et préfigure ce réseau plus rapide.",
+            "Humain et machine : l'IA automatise une grande partie de la marche, mais un humain formé reste indispensable face à l'imprévu.",
+          ],
+        },
+        {
+          heading: 'En chiffres et idées clés',
+          bullets: [
+            'Durée : quelques minutes au lieu de plusieurs heures · Vitesse : plusieurs centaines de km/h',
+            "Énergie : 100 % électrique · Lieu : le fond de l'océan · Lien permanent avec le centre de contrôle",
+            "À retenir : rapidité, écologie et sécurité dans un décor que presque personne ne connaît.",
+          ],
+        },
+      ],
+    },
+    {
+      id: 'sec-2',
+      tabLabel: '2. Quotidien & Formation',
+      title: 'Le quotidien, les compétences et la formation',
+      blocks: [
+        {
+          heading: 'Trois mots : vérifier, surveiller, réagir',
+          bullets: [
+            "Avant le départ (inspection) : freins, portes, systèmes électriques, niveau d'énergie et état du tunnel.",
+            "Centre de contrôle : confirmation constante de l'itinéraire, des conditions du tunnel et des capteurs avec la surface.",
+            "Pendant le trajet : surveillance des écrans — vitesse, pression de l'eau, fuites éventuelles et énergie.",
+            "En cas d'urgence : rester calme, prévenir le centre de contrôle, ralentir ou arrêter le train, suivre le plan et guider les passagers.",
+            "À l'arrivée : rédiger le rapport complet et signaler le moindre détail avant de passer le relais à l'équipe suivante.",
+          ],
+        },
+        {
+          heading: 'Les 5 compétences nécessaires',
+          bullets: [
+            'Connaissances techniques (électronique, mécanique, automatisation) pour comprendre toute alerte.',
+            'Sang-froid absolu sous des millions de litres d’eau, même quand une alarme sonne.',
+            'Rapidité de décision pour analyser un problème et agir en quelques secondes.',
+            'Travail d’équipe : communication claire et courte avec ingénieurs, techniciens et surface.',
+            'Aisance dans les espaces fermés : sans fenêtre sur le ciel ni grand air.',
+          ],
+        },
+        {
+          heading: 'Comment devenir conducteur ?',
+          bullets: [
+            'Études techniques ou d’ingénieur : électronique, mécanique, automatisation ou transport.',
+            'Formation sur simulateur : des centaines d’heures sur une réplique exacte avec pannes simulées.',
+            'Formations de secours et sauvetage (type pompiers ou équipages de sous-marins).',
+            'Contrôles médicaux et physiques réguliers, car la sécurité passe avant tout.',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'sec-3',
+      tabLabel: '3. Bilan & Futur',
+      title: 'Avantages, difficultés et conclusion',
+      blocks: [
+        {
+          heading: 'Les avantages',
+          bullets: [
+            'Salaire élevé grâce à la rareté, la spécialisation et le niveau de responsabilité.',
+            "Technologie de pointe : IA, automatisation et capteurs ultra-modernes au quotidien.",
+            "Point de vue unique au fond de l'océan, impact écologique positif et fierté de mener des centaines de passagers à bon port.",
+          ],
+        },
+        {
+          heading: 'Les difficultés',
+          bullets: [
+            "Pression énorme de l'eau sur le tunnel et risque permanent de fuites ou de pannes.",
+            'Environnement fermé sans lumière du jour ni horizon, exigeant physiquement et mentalement.',
+            'Immense responsabilité envers les passagers et formation longue et exigeante.',
+          ],
+        },
+        {
+          heading: 'Ce métier est-il fait pour toi ?',
+          paragraphs: [
+            'Il convient à ceux qui aiment la technologie, les défis, le travail en équipe et les responsabilités ; moins à ceux qui supportent mal les espaces clos ou le stress.',
+            "Il y a un peu plus d'un siècle, voler en avion paraissait tout aussi impossible. Qui sait ? Peut-être que l'un d'entre nous sera le premier à prendre les commandes.",
+          ],
+        },
+      ],
     },
   ],
 };

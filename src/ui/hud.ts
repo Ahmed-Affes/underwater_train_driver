@@ -1,5 +1,5 @@
 /**
- * HUD CONTROLLER, INTERACTIVE HOTSPOTS, QUIZ & CONCEPT FILM MODAL
+ * CONTRÔLEUR HUD, INFO-BULLES, DOSSIER COMPLET, QUIZ & FILM 4K
  * ---------------------------------------------------------------------------
  */
 
@@ -44,6 +44,7 @@ export class HudController {
     this.bindSoundToggle();
     this.bindVideoModal();
     this.bindQuizModal();
+    this.bindDossierModal();
     this.bindDismissTooltip();
     this.setActiveChapter(0);
   }
@@ -64,7 +65,7 @@ export class HudController {
           type="button"
           class="route-node"
           data-chapter-jump="${ch.index}"
-          aria-label="Jump to ${ch.label}"
+          aria-label="Aller à : ${ch.label}"
         >
           <span class="route-dot" aria-hidden="true"></span>
           <span class="route-label">${ch.label}</span>
@@ -136,14 +137,14 @@ export class HudController {
     if (this.throttleStateEl) {
       const mode =
         !isStarted || speed < 8
-          ? 'IDLE'
-          : velocityNorm > 0.45 || speed >= 158
-          ? 'FULL'
-          : 'CRUISE';
+          ? SITE_CONFIG.hud.throttleIdle
+          : velocityNorm > 0.45 || speed >= 230
+          ? SITE_CONFIG.hud.throttleFull
+          : SITE_CONFIG.hud.throttleCruise;
       this.throttleStateEl.textContent = mode;
     }
     if (this.throttleBarEl) {
-      const ratio = Math.min(1, Math.max(0.04, speed / 185));
+      const ratio = Math.min(1, Math.max(0.04, speed / 270));
       this.throttleBarEl.style.transform = `scaleX(${ratio.toFixed(3)})`;
     }
   }
@@ -167,7 +168,7 @@ export class HudController {
         style="left: ${spot.x}%; top: ${spot.y}%;"
         data-title="${spot.label}"
         data-fact="${spot.description}"
-        aria-label="${spot.label}: ${spot.description}"
+        aria-label="${spot.label} : ${spot.description}"
       >
         <span class="hotspot-ring" aria-hidden="true"></span>
         <span class="hotspot-core" aria-hidden="true"></span>
@@ -203,9 +204,9 @@ export class HudController {
     this.tooltipTitleEl.textContent = pinEl.dataset.title || '';
     this.tooltipBodyEl.textContent = pinEl.dataset.fact || '';
 
-    const tipWidth = 270;
+    const tipWidth = 285;
     const x = Math.min(window.innerWidth - tipWidth - 16, Math.max(16, rect.left - tipWidth * 0.35));
-    const y = rect.top > 160 ? rect.top - 108 : rect.bottom + 14;
+    const y = rect.top > 165 ? rect.top - 115 : rect.bottom + 14;
     this.tooltipEl.style.transform = `translate3d(${x.toFixed(0)}px, ${y.toFixed(0)}px, 0)`;
     this.tooltipEl.classList.add('is-visible');
     this.tooltipEl.setAttribute('aria-hidden', 'false');
@@ -255,10 +256,41 @@ export class HudController {
       });
     }
 
-    ctaBtn?.addEventListener('click', () => this.openQuizModal());
+    ctaBtn?.addEventListener('click', () => this.openDossierModal());
     quizTriggerBtn?.addEventListener('click', () => this.openQuizModal());
     replayBtn?.addEventListener('click', () => {
       if (this.onReplay) this.onReplay();
+    });
+  }
+
+  private openDossierModal(): void {
+    const modal = document.getElementById('dossier-modal');
+    const closeBtn = document.getElementById('close-dossier-modal');
+    if (!modal) return;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    closeBtn?.focus();
+  }
+
+  private bindDossierModal(): void {
+    const openBtn = document.getElementById('open-dossier-btn');
+    const modal = document.getElementById('dossier-modal');
+    const closeBtn = document.getElementById('close-dossier-modal');
+    if (!modal) return;
+
+    const closeModal = () => {
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      openBtn?.focus();
+    };
+
+    openBtn?.addEventListener('click', () => this.openDossierModal());
+    closeBtn?.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
     });
   }
 
@@ -282,7 +314,7 @@ export class HudController {
     const closeModal = () => {
       modal.classList.remove('is-open');
       modal.setAttribute('aria-hidden', 'true');
-      document.getElementById('cta-training-btn')?.focus();
+      document.getElementById('open-quiz-btn')?.focus();
     };
 
     closeBtn?.addEventListener('click', closeModal);
@@ -307,16 +339,16 @@ export class HudController {
           this.fxCanvas.emitCelebrationBurst();
           resultEl.innerHTML = `
             <div class="cadet-pass-card">
-              <span class="pass-badge">APPRENTICE DRIVER PASS // VERIFIED</span>
-              <strong>3/3 Checks Passed — Cleared for Simulator Bay 04</strong>
-              <p>Pressure, Glow Zone composure, and 300-hour certification confirmed.</p>
+              <span class="pass-badge">BREVET D'APPRENTI CONDUCTEUR // VALIDÉ</span>
+              <strong>3/3 bonnes réponses — Prêt pour le simulateur Secteur 04</strong>
+              <p>Maîtrise des trois métiers, réflexe d'urgence sous-marine et parcours complet validés.</p>
             </div>
           `;
         } else {
           resultEl.innerHTML = `
             <div class="cadet-pass-card is-retry">
-              <strong>${score}/3 Checks Passed</strong>
-              <p>Hint: Drivers monitor water pressure &amp; sonar readings, keep steady throttle watch in the Glow Zone, and complete 300 hours + hull certification.</p>
+              <strong>${score}/3 bonnes réponses</strong>
+              <p>Indice : le conducteur réunit train, sous-marin et pilote ; reste calme et alerte la surface en cas de fuite ; et valide études, simulateur, secours et contrôles médicaux.</p>
             </div>
           `;
         }

@@ -294,9 +294,12 @@ export function initCinematicTimeline(opts: {
       }
     }
 
-    // Sunken Arch 3-step certification rail
-    if (ch.id === 'sunken-arch' && cityStepNodes.length === 3) {
-      const activeStep = localT < 0.34 ? 0 : localT < 0.7 ? 1 : 2;
+    // Sunken Arch 3-or-4-step certification rail
+    if (ch.id === 'sunken-arch' && cityStepNodes.length >= 3) {
+      const activeStep = Math.min(
+        cityStepNodes.length - 1,
+        Math.floor(localT * cityStepNodes.length)
+      );
       cityStepNodes.forEach((el, sIdx) => {
         el.classList.toggle('is-active', sIdx === activeStep);
         el.classList.toggle('is-done', sIdx < activeStep);

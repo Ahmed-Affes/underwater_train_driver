@@ -1,211 +1,195 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Abyssline 04 — Underwater Train Driver</title>
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%23031520' stroke='%2322d3ee' stroke-width='3'/><circle cx='16' cy='16' r='5' fill='%23fbbf24'/></svg>"
-    />
-    <meta
-      name="description"
-      content="Scroll to pilot a futuristic underwater maglev train from the departure tunnel through coral reefs, kelp skyline, command cab, sunken city arch, 380m glow zone, and glass-dome terminal."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <a class="skip-link" href="#scroll-track">Skip to journey story</a>
+<html lang="fr">
 
-    <!-- Train Headlight Preloader (tied to real initial chapter preload) -->
-    <div id="loader" role="status" aria-label="Loading underwater train journey">
-      <div class="loader-inner">
-        <div class="loader-headlights" aria-hidden="true">
-          <span class="loader-beam beam-left"></span>
-          <span class="loader-beam beam-right"></span>
-          <span class="loader-nose-pill"></span>
-        </div>
-        <p class="loader-title">ABYSSLINE // SECTOR 04</p>
-        <div class="loader-bar-track" aria-hidden="true">
-          <div id="loader-progress-fill" class="loader-bar-fill"></div>
-        </div>
-        <p class="loader-status">
-          <span>Charging magnetic rail</span>
-          <span id="loader-pct">0%</span>
-        </p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abyssline 04 — Conducteur de train sous-marin</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%23031520' stroke='%2322d3ee' stroke-width='3'/><circle cx='16' cy='16' r='5' fill='%23fbbf24'/></svg>" />
+  <meta name="description"
+    content="Découvre le métier du futur : conducteur de train sous-marin. Fais défiler la page pour piloter un train magnétique au fond de l'océan." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+  <a class="skip-link" href="#scroll-track">Aller au récit du voyage</a>
+
+  <!-- Préchargeur Phare du train -->
+  <div id="loader" role="status" aria-label="Chargement du voyage sous-marin">
+    <div class="loader-inner">
+      <div class="loader-headlights" aria-hidden="true">
+        <span class="loader-beam beam-left"></span>
+        <span class="loader-beam beam-right"></span>
+        <span class="loader-nose-pill"></span>
       </div>
+      <p class="loader-title">ABYSSLINE // SECTEUR 04</p>
+      <div class="loader-bar-track" aria-hidden="true">
+        <div id="loader-progress-fill" class="loader-bar-fill"></div>
+      </div>
+      <p class="loader-status">
+        <span>Mise sous tension du rail magnétique</span>
+        <span id="loader-pct">0%</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- Barre de progression en haut -->
+  <div class="top-progress-track" aria-hidden="true">
+    <div id="top-progress-fill" class="top-progress-fill"></div>
+  </div>
+
+  <!-- Scène vidéo plein écran (vidéo originale intacte en arrière-plan) -->
+  <div id="stage">
+    <canvas id="video-canvas" aria-label="Voyage du train sous-marin"></canvas>
+
+    <!-- Interface holographique du poste de pilotage -->
+    <div id="cab-overlay" class="cab-overlay" aria-hidden="true"></div>
+
+    <!-- Particules & traînées de vitesse uniquement en superposition -->
+    <canvas id="fx-canvas" class="stage-overlay" aria-hidden="true"></canvas>
+    <div id="vignette-overlay" class="stage-overlay" aria-hidden="true"></div>
+
+    <!-- Points interactifs -->
+    <div id="hotspots-layer" class="hotspots-layer"></div>
+  </div>
+
+  <!-- HUD persistant -->
+  <header class="top-hud">
+    <div class="brand-badge">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-name">ABYSSLINE</span>
+      <span class="brand-sep" aria-hidden="true">//</span>
+      <span class="brand-line">SECTEUR 04</span>
     </div>
 
-    <!-- Thin Top Route Progress Line -->
-    <div class="top-progress-track" aria-hidden="true">
-      <div id="top-progress-fill" class="top-progress-fill"></div>
+    <div class="top-controls">
+      <button type="button" id="open-dossier-btn" class="hud-pill-btn">
+        <span aria-hidden="true">≡</span>
+        <span>Dossier complet</span>
+      </button>
+
+      <button type="button" id="open-film-btn" class="hud-pill-btn">
+        <span aria-hidden="true">▶</span>
+        <span>Vidéo 4K complète</span>
+      </button>
+
+      <button type="button" id="sound-toggle-btn" class="hud-pill-btn" aria-pressed="false">
+        <span class="sound-bars" aria-hidden="true">
+          <i></i><i></i><i></i>
+        </span>
+        <span class="sound-label">Audio océan : Non</span>
+      </button>
     </div>
+  </header>
 
-    <!-- Pinned Full-Screen Video Stage (Crisp unfiltered video canvas) -->
-    <div id="stage">
-      <canvas id="video-canvas" aria-label="Underwater maglev train journey"></canvas>
+  <!-- Carte d'itinéraire cliquable à gauche -->
+  <nav class="route-map" aria-label="Chapitres du parcours sous-marin">
+    <ol id="route-map-list" class="route-map-list"></ol>
+  </nav>
 
-      <!-- Signature Command Cab Holographic UI Overlay -->
-      <div id="cab-overlay" class="cab-overlay" aria-hidden="true"></div>
-
-      <!-- Overlay-Only Particles, Light Streaks & Cursor Ring -->
-      <canvas id="fx-canvas" class="stage-overlay" aria-hidden="true"></canvas>
-      <div id="vignette-overlay" class="stage-overlay" aria-hidden="true"></div>
-
-      <!-- Interactive Creature & Landmark Hotspots -->
-      <div id="hotspots-layer" class="hotspots-layer"></div>
+  <!-- Jauge de profondeur et de pression à droite -->
+  <aside class="depth-meter" aria-label="Profondeur de l'océan et pression d'eau">
+    <div class="depth-readout">
+      <span class="telemetry-tag">PROFONDEUR</span>
+      <strong id="hud-depth-val" class="telemetry-num">0m</strong>
     </div>
-
-    <!-- Persistent Glass HUD -->
-    <header class="top-hud">
-      <div class="brand-badge">
-        <span class="brand-dot" aria-hidden="true"></span>
-        <span class="brand-name">ABYSSLINE</span>
-        <span class="brand-sep" aria-hidden="true">//</span>
-        <span class="brand-line">SECTOR 04</span>
+    <div class="depth-ruler" aria-hidden="true">
+      <div class="depth-ruler-track">
+        <div id="hud-depth-fill" class="depth-ruler-fill"></div>
+        <span id="hud-depth-marker" class="depth-ruler-marker"></span>
       </div>
-
-      <div class="top-controls">
-        <button type="button" id="open-film-btn" class="hud-pill-btn">
-          <span aria-hidden="true">▶</span>
-          <span>Concept Film</span>
-        </button>
-
-        <button
-          type="button"
-          id="sound-toggle-btn"
-          class="hud-pill-btn"
-          aria-pressed="false"
-        >
-          <span class="sound-bars" aria-hidden="true">
-            <i></i><i></i><i></i>
-          </span>
-          <span class="sound-label">Ocean Audio: Off</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- Left Side: Clickable Chapter Route Map -->
-    <nav class="route-map" aria-label="Ocean train chapters">
-      <ol id="route-map-list" class="route-map-list"></ol>
-    </nav>
-
-    <!-- Right Side: Live Depth & Pressure Meter -->
-    <aside class="depth-meter" aria-label="Live ocean depth and water pressure">
-      <div class="depth-readout">
-        <span class="telemetry-tag">DEPTH</span>
-        <strong id="hud-depth-val" class="telemetry-num">0m</strong>
-      </div>
-      <div class="depth-ruler" aria-hidden="true">
-        <div class="depth-ruler-track">
-          <div id="hud-depth-fill" class="depth-ruler-fill"></div>
-          <span id="hud-depth-marker" class="depth-ruler-marker"></span>
-        </div>
-        <div class="depth-ticks">
-          <span>0m</span>
-          <span>190m</span>
-          <span>380m</span>
-        </div>
-      </div>
-      <div class="pressure-readout">
-        <span class="telemetry-tag">PRESSURE</span>
-        <strong id="hud-pressure-val" class="telemetry-sub">1.0 ATM</strong>
-      </div>
-    </aside>
-
-    <!-- Bottom-Left: Velocity-Reactive Throttle -->
-    <div class="throttle-hud" aria-label="Train throttle and speed">
-      <div class="throttle-header">
-        <span class="telemetry-tag">THROTTLE</span>
-        <span id="hud-throttle-state" class="throttle-mode">IDLE</span>
-      </div>
-      <div class="throttle-bar-wrap" aria-hidden="true">
-        <div id="hud-throttle-fill" class="throttle-bar-fill"></div>
-      </div>
-      <div id="hud-speed-val" class="throttle-speed">0 km/h</div>
-    </div>
-
-    <!-- Scroll Track: Semantic Chapters -->
-    <main id="scroll-track" class="scroll-track"></main>
-
-    <!-- Hotspot Tooltip -->
-    <div id="hotspot-tooltip" class="hotspot-tooltip" role="tooltip" aria-hidden="true">
-      <h3 id="tooltip-title"></h3>
-      <p id="tooltip-body"></p>
-    </div>
-
-    <!-- Pre-Run Driver Check Quiz Modal -->
-    <div
-      id="training-modal"
-      class="modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="training-modal-title"
-      aria-hidden="true"
-    >
-      <div class="modal-card">
-        <button
-          type="button"
-          id="close-training-modal"
-          class="modal-close"
-          aria-label="Close Pre-Run Driver Check"
-        >
-          ✕
-        </button>
-        <span class="kicker-code">ABYSSLINE ACADEMY // CADET CHECK</span>
-        <h2 id="training-modal-title" class="modal-heading">Pre-Run Driver Check</h2>
-        <p class="modal-intro">
-          Answer three quick questions from your route to earn your Apprentice Driver pass.
-        </p>
-
-        <form id="training-check-form" class="training-form">
-          <div id="quiz-questions-host" class="quiz-questions-host"></div>
-          <button type="submit" class="modal-submit-btn">Verify Cadet Readiness</button>
-        </form>
-
-        <div id="training-result" class="training-result" hidden></div>
+      <div class="depth-ticks">
+        <span>0m</span>
+        <span>190m</span>
+        <span>380m</span>
       </div>
     </div>
-
-    <!-- Concept Film Modal (Lazy-loaded) -->
-    <div
-      id="video-modal"
-      class="modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="video-modal-title"
-      aria-hidden="true"
-    >
-      <div class="modal-card video-modal-card">
-        <button
-          type="button"
-          id="close-video-modal"
-          class="modal-close"
-          aria-label="Close concept film"
-        >
-          ✕
-        </button>
-        <span class="kicker-code">CONCEPT FILM // FULL ROUTE</span>
-        <h2 id="video-modal-title" class="modal-heading">Abyssline 04 Motion Reel</h2>
-        <video
-          id="concept-video-player"
-          class="concept-video"
-          controls
-          playsinline
-          preload="none"
-        ></video>
-        <p class="video-caption-note">
-          Full 20-second underwater maglev run: departure tunnel, coral reef, kelp skyline, command cab, sunken city arch, 380m glow zone, glass-dome terminal, platform boarding, and open horizon.
-        </p>
-      </div>
+    <div class="pressure-readout">
+      <span class="telemetry-tag">PRESSION</span>
+      <strong id="hud-pressure-val" class="telemetry-sub">1.0 ATM</strong>
     </div>
+  </aside>
 
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  <!-- Indicateur de vitesse / propulsion en bas à gauche -->
+  <div class="throttle-hud" aria-label="Propulsion et vitesse du train">
+    <div class="throttle-header">
+      <span class="telemetry-tag">PROPULSION</span>
+      <span id="hud-throttle-state" class="throttle-mode">VEILLE</span>
+    </div>
+    <div class="throttle-bar-wrap" aria-hidden="true">
+      <div id="hud-throttle-fill" class="throttle-bar-fill"></div>
+    </div>
+    <div id="hud-speed-val" class="throttle-speed">0 km/h</div>
+  </div>
+
+  <!-- Piste de défilement des 9 chapitres -->
+  <main id="scroll-track" class="scroll-track"></main>
+
+  <!-- Info-bulle interactive -->
+  <div id="hotspot-tooltip" class="hotspot-tooltip" role="tooltip" aria-hidden="true">
+    <h3 id="tooltip-title"></h3>
+    <p id="tooltip-body"></p>
+  </div>
+
+  <!-- Fenêtre Dossier Complet du Métier (tout le contenu structuré) -->
+  <div id="dossier-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="dossier-modal-title"
+    aria-hidden="true">
+    <div class="modal-card dossier-modal-card">
+      <button type="button" id="close-dossier-modal" class="modal-close" aria-label="Fermer le dossier complet">
+        ✕
+      </button>
+      <span class="kicker-code">FICHE MÉTIER COMPLÈTE // CONDUCTEUR SOUS-MARIN</span>
+      <h2 id="dossier-modal-title" class="modal-heading">Le dossier complet du métier</h2>
+      <div id="dossier-tabs-bar" class="dossier-tabs-bar" role="tablist"></div>
+      <div id="dossier-content-host" class="dossier-content-host"></div>
+    </div>
+  </div>
+
+  <!-- Fenêtre Test d'aptitude -->
+  <div id="training-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="training-modal-title"
+    aria-hidden="true">
+    <div class="modal-card">
+      <button type="button" id="close-training-modal" class="modal-close" aria-label="Fermer le test d'aptitude">
+        ✕
+      </button>
+      <span class="kicker-code">ACADÉMIE ABYSSLINE // TEST D'APTITUDE</span>
+      <h2 id="training-modal-title" class="modal-heading">Vérification avant départ</h2>
+      <p class="modal-intro">
+        Réponds à ces trois questions issues du parcours pour obtenir ton brevet d’apprenti conducteur.
+      </p>
+
+      <form id="training-check-form" class="training-form">
+        <div id="quiz-questions-host" class="quiz-questions-host"></div>
+        <button type="submit" class="modal-submit-btn">Valider mes réponses</button>
+      </form>
+
+      <div id="training-result" class="training-result" hidden></div>
+    </div>
+  </div>
+
+  <!-- Fenêtre Vidéo 4K complète -->
+  <div id="video-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="video-modal-title"
+    aria-hidden="true">
+    <div class="modal-card video-modal-card">
+      <button type="button" id="close-video-modal" class="modal-close" aria-label="Fermer la vidéo complète">
+        ✕
+      </button>
+      <span class="kicker-code">FILM COMPLET 4K // TRAJET INTÉGRAL</span>
+      <h2 id="video-modal-title" class="modal-heading">Abyssline 04 — Traversée sous-marine</h2>
+      <video id="concept-video-player" class="concept-video" controls playsinline preload="none"></video>
+      <p class="video-caption-note">
+        Vidéo originale intégrale : départ du tunnel, récif, poste de pilotage, arche engloutie, zone abyssale, approche
+        du dôme, quai des passagers et sortie vers le large.
+      </p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>
