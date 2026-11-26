@@ -285,8 +285,8 @@ export class HudController {
       });
     }
 
-    ctaBtn?.addEventListener('click', () => this.openDossierModal());
-    quizTriggerBtn?.addEventListener('click', () => this.openQuizModal());
+    ctaBtn?.addEventListener('click', () => this.openQuizModal());
+    quizTriggerBtn?.addEventListener('click', () => this.openDossierModal());
     replayBtn?.addEventListener('click', () => {
       if (this.onReplay) this.onReplay();
     });

@@ -774,24 +774,28 @@ body {
 
 .chapter-card {
   position: fixed;
-  top: 5.1rem;
+  top: 4.85rem;
   right: clamp(6.4rem, 9vw, 8.8rem);
-  width: min(375px, 28vw);
-  min-width: 270px;
+  width: min(445px, 35vw);
+  min-width: 290px;
+  max-height: calc(100vh - 6.5rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.35) transparent;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  padding: 1rem 1.2rem;
+  padding: 0.95rem 1.15rem;
   border-radius: 10px;
   background: linear-gradient(
     270deg,
-    rgba(2, 14, 24, 0.82) 0%,
-    rgba(4, 22, 36, 0.62) 72%,
-    rgba(4, 22, 36, 0.34) 100%
+    rgba(2, 14, 24, 0.88) 0%,
+    rgba(4, 22, 36, 0.74) 76%,
+    rgba(4, 22, 36, 0.45) 100%
   );
   border: 0;
   border-right: 2.5px solid var(--accent-color);
-  box-shadow: 0 16px 40px rgba(2, 8, 16, 0.28);
+  box-shadow: 0 16px 40px rgba(2, 8, 16, 0.34);
   will-change: opacity, transform;
 }
 
@@ -916,46 +920,94 @@ body {
   gap: 0.4rem 0.65rem;
 }
 
-/* Interactive Mini-Tabs inside Chapter Cards */
-.chapter-tabs-box {
-  margin-top: 0.75rem;
-  padding: 0.6rem 0.72rem;
-  border-radius: 12px;
-  background: rgba(2, 14, 24, 0.56);
-  border: 1px solid rgba(165, 243, 252, 0.2);
-}
-
-.chapter-tabs-row {
+/* Directly visible scannable content blocks inside chapter cards */
+.chapter-groups {
+  margin-top: 0.7rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-bottom: 0.5rem;
+  flex-direction: column;
+  gap: 0.55rem;
 }
 
-.chapter-tab-btn {
-  min-height: 28px;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid rgba(165, 243, 252, 0.25);
-  background: rgba(6, 28, 44, 0.6);
-  color: rgba(224, 242, 254, 0.78);
+.chapter-groups.is-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.chapter-group {
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(2, 12, 22, 0.55);
+  border: 1px solid rgba(165, 243, 252, 0.16);
+}
+
+.chapter-group.tone-pro {
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+.chapter-group.tone-con {
+  border-color: rgba(244, 114, 182, 0.38);
+}
+
+.chapter-group-title {
+  margin: 0 0 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
-  cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #67e8f9;
 }
 
-.chapter-tab-btn.is-active {
-  background: rgba(34, 211, 238, 0.22);
-  border-color: var(--accent-color);
-  color: #ffffff;
+.chapter-group.tone-pro .chapter-group-title {
+  color: #6ee7b7;
 }
 
-.chapter-tab-panel {
+.chapter-group.tone-con .chapter-group-title {
+  color: #f9a8d4;
+}
+
+.chapter-bullets {
   margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.44;
-  color: #e0f2fe;
+  padding-left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+  font-size: 0.79rem;
+  line-height: 1.42;
+  color: #f0f9ff;
+}
+
+.chapter-bullets strong {
+  color: #fde68a;
+  font-weight: 600;
+}
+
+.mini-stats-grid {
+  margin-top: 0.65rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.mini-stat-item {
+  padding: 0.42rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(3, 18, 30, 0.68);
+  border: 1px solid rgba(165, 243, 252, 0.16);
+}
+
+.mini-stat-item span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a5f3fc;
+}
+
+.mini-stat-item strong {
+  font-size: 0.76rem;
+  color: #ffffff;
 }
 
 .city-step-item {
@@ -1538,6 +1590,10 @@ body {
     margin-top: 0.42rem;
     padding-top: 0.42rem;
     font-size: 0.66rem;
+  }
+
+  .chapter-groups.is-two-col {
+    grid-template-columns: 1fr;
   }
 
   /* Mobile framing band outside the 9vh..65vh crisp video window */

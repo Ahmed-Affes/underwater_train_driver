@@ -37,41 +37,48 @@ function renderChapterSections(): void {
         extraBlock = `<p class="chapter-body">${ch.body}</p>`;
       }
 
-      if (ch.tabs && ch.tabs.length > 0) {
+      if (ch.groups && ch.groups.length > 0) {
+        const groupsHtml = ch.groups
+          .map(
+            (g) => `
+            <div class="chapter-group ${g.tone ? `tone-${g.tone}` : ''}">
+              ${g.title ? `<h3 class="chapter-group-title">${g.title}</h3>` : ''}
+              <ul class="chapter-bullets">
+                ${g.bullets
+                  .map(
+                    (b) => `
+                  <li>
+                    ${b.lead ? `<strong>${b.lead} :</strong> ` : ''}${b.text}
+                  </li>
+                `
+                  )
+                  .join('')}
+              </ul>
+            </div>
+          `
+          )
+          .join('');
+
         extraBlock += `
-          <div class="chapter-tabs-box chapter-meta" data-chapter-tabs="${ch.index}">
-            <div class="chapter-tabs-row" role="tablist" aria-label="Détails : ${ch.label}">
-              ${ch.tabs
-                .map(
-                  (tab, tIdx) => `
-                <button
-                  type="button"
-                  role="tab"
-                  class="chapter-tab-btn ${tIdx === 0 ? 'is-active' : ''}"
-                  aria-selected="${tIdx === 0 ? 'true' : 'false'}"
-                  data-tab-target="${ch.index}-${tab.id}"
-                >
-                  ${tab.label}
-                </button>
-              `
-                )
-                .join('')}
-            </div>
-            <div class="chapter-tabs-panels">
-              ${ch.tabs
-                .map(
-                  (tab, tIdx) => `
-                <p
-                  class="chapter-tab-panel ${tIdx === 0 ? 'is-active' : ''}"
-                  data-tab-panel="${ch.index}-${tab.id}"
-                  ${tIdx === 0 ? '' : 'hidden'}
-                >
-                  ${tab.text}
-                </p>
-              `
-                )
-                .join('')}
-            </div>
+          <div class="chapter-groups ${ch.twoColGroups ? 'is-two-col' : ''} chapter-meta">
+            ${groupsHtml}
+          </div>
+        `;
+      }
+
+      if (ch.miniStats && ch.miniStats.length > 0) {
+        extraBlock += `
+          <div class="mini-stats-grid chapter-meta">
+            ${ch.miniStats
+              .map(
+                (s) => `
+              <div class="mini-stat-item">
+                <span>${s.label}</span>
+                <strong>${s.value}</strong>
+              </div>
+            `
+              )
+              .join('')}
           </div>
         `;
       }
@@ -154,31 +161,6 @@ function renderChapterSections(): void {
       `;
     })
     .join('');
-}
-
-function bindChapterTabs(): void {
-  const track = document.getElementById('scroll-track');
-  if (!track) return;
-
-  track.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.chapter-tab-btn');
-    if (!btn) return;
-    const box = btn.closest<HTMLElement>('.chapter-tabs-box');
-    const targetId = btn.dataset.tabTarget;
-    if (!box || !targetId) return;
-
-    box.querySelectorAll<HTMLButtonElement>('.chapter-tab-btn').forEach((b) => {
-      const active = b === btn;
-      b.classList.toggle('is-active', active);
-      b.setAttribute('aria-selected', String(active));
-    });
-
-    box.querySelectorAll<HTMLElement>('.chapter-tab-panel').forEach((panel) => {
-      const active = panel.dataset.tabPanel === targetId;
-      panel.classList.toggle('is-active', active);
-      panel.hidden = !active;
-    });
-  });
 }
 
 function mountCabOverlay(hud: HudController): void {
@@ -367,7 +349,6 @@ async function bootstrap(): Promise<void> {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   renderChapterSections();
-  bindChapterTabs();
   renderQuizQuestions();
   renderDossierModal();
 

@@ -1,11 +1,8 @@
 /**
  * CONFIGURATION CENTRALE — ABYSSLINE 04 (FR)
  * ---------------------------------------------------------------------------
- * Source unique pour :
- *  - Le moteur vidéo ('frames' WebP progressif ou 'video' MP4 direct)
- *  - Les 3 paliers de qualité (desktop 1080p supersamplé 4K, tablette 720p, mobile 540p)
- *  - Les 9 chapitres calés sur toute la vidéo (0.00s -> 20.00s sans coupure)
- *  - Les onglets interactifs, le poste de pilotage, le dossier complet & le quiz
+ * Tout le contenu des 3 sections est directement affiché au fil du scroll
+ * dans les 9 chapitres, sans avoir besoin d'ouvrir de fenêtre modale.
  */
 
 export type TextSide = 'left' | 'right' | 'top-left';
@@ -18,10 +15,15 @@ export interface HotspotConfig {
   description: string;
 }
 
-export interface ChapterTab {
-  id: string;
-  label: string;
+export interface ChapterBullet {
+  lead?: string;
   text: string;
+}
+
+export interface ChapterGroup {
+  title?: string;
+  tone?: 'default' | 'pro' | 'con';
+  bullets: ChapterBullet[];
 }
 
 export interface ChapterConfig {
@@ -48,12 +50,13 @@ export interface ChapterConfig {
   sparkleFactor: number;
   posterFallback: string;
   hotspots: HotspotConfig[];
-  tabs?: ChapterTab[];
+  /** Blocs de contenu directement visibles dans la carte au fil du scroll */
+  groups?: ChapterGroup[];
+  /** Affichage côte à côte (ex: Avantages / Difficultés) */
+  twoColGroups?: boolean;
+  /** Grille compacte de chiffres clés */
+  miniStats?: { label: string; value: string }[];
   trainingSteps?: string[];
-  compensationCard?: {
-    title: string;
-    items: string[];
-  };
 }
 
 export interface TierSpec {
@@ -148,7 +151,7 @@ export const SITE_CONFIG: SiteConfig = {
 
   playbackEngine: 'frames',
   durationSec: 20.0,
-  scrollMultiplier: 1.0,
+  scrollMultiplier: 1.08,
   scrubLerp: 0.14,
   particleDensity: 90,
 
@@ -198,25 +201,25 @@ export const SITE_CONFIG: SiteConfig = {
         id: 'cab-hull',
         x: 20,
         y: 69,
-        label: 'Avant le départ',
+        label: 'Inspection départ',
         description:
-          "Inspection complète : vérification des freins, des portes, des systèmes électriques, de l'énergie et de l'état du tunnel.",
+          "Vérification des freins, des portes, des systèmes électriques, de l'énergie et de l'état du tunnel avant de partir.",
       },
       {
         id: 'cab-pressure',
         x: 50,
         y: 72,
-        label: 'Surveillance & Pression',
+        label: 'Écrans & Capteurs',
         description:
-          "Contrôle permanent de la vitesse, de la pression d'eau autour du tunnel, du niveau d'énergie et des fuites éventuelles.",
+          "Surveillance continue de la vitesse, de la pression d'eau, du niveau d'énergie et des fuites éventuelles.",
       },
       {
         id: 'cab-throttle',
         x: 78,
         y: 77,
-        label: "En cas d'urgence",
+        label: "Réaction d'urgence",
         description:
-          'Si un capteur signale une fuite : rester calme, prévenir le centre de contrôle, ralentir ou arrêter le train et guider les passagers.',
+          'En cas de fuite : rester calme, prévenir la surface, ralentir ou arrêter le train et guider les passagers.',
       },
       {
         id: 'cab-sonar',
@@ -224,7 +227,7 @@ export const SITE_CONFIG: SiteConfig = {
         y: 44,
         label: 'Centre de contrôle',
         description:
-          'Liaison permanente avec la surface : confirmation de l’itinéraire, des conditions du tunnel et reprise manuelle possible à tout moment.',
+          'Lien permanent avec le centre à la surface : confirmation de l’itinéraire, des capteurs et reprise manuelle prête.',
       },
     ],
   },
@@ -234,15 +237,15 @@ export const SITE_CONFIG: SiteConfig = {
       id: 'departure',
       index: 0,
       label: 'Le métier',
-      stationCode: 'STN-00',
-      headline: 'Conducteur de train sous-marin',
-      subline: 'Un métier du futur au fond de l’océan.',
-      body: "Imagine un train à grande vitesse dans un tunnel étanche sous la mer : des tonnes d'eau autour, des voyageurs à bord, et toi aux commandes.",
+      stationCode: 'SEC-01 · INTRO',
+      headline: 'Conducteur de train sous-marin : un métier du futur',
+      subline: 'Imagine un train à grande vitesse dans un tunnel étanche posé au fond de l’océan.',
+      body: "Autour de lui, des tonnes d'eau. À l'intérieur, des passagers traversent la mer en quelques minutes, sans bateau et sans avion. À l'avant, une personne aux commandes : le conducteur de train sous-marin. Il conduit, surveille et protège un train qui relie îles, côtes et pays.",
       hint: 'Fais défiler pour prendre les commandes',
       videoStart: 0.0,
       videoEnd: 1.0,
-      scrollVh: 160,
-      dwell: 0.35,
+      scrollVh: 170,
+      dwell: 0.4,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.44,
@@ -257,15 +260,14 @@ export const SITE_CONFIG: SiteConfig = {
     {
       id: 'reef',
       index: 1,
-      label: '3 professions',
-      stationCode: 'MRK-01',
-      headline: 'Trois métiers réunis en un',
-      body: 'Tu relies îles, côtes et pays en quelques minutes au lieu de plusieurs heures en bateau, en lien constant avec la surface.',
-      fact: 'Trajet : quelques minutes · 100 % électrique · Fond de l’océan',
+      label: '3 professions & chiffres',
+      stationCode: 'SEC-01 · MISSION',
+      headline: 'Un métier qui combine trois professions',
+      body: 'Un trajet qui prend plusieurs heures en bateau se fait ici en quelques minutes, sous la mer.',
       videoStart: 1.0,
       videoEnd: 1.95,
-      scrollVh: 165,
-      dwell: 0.42,
+      scrollVh: 185,
+      dwell: 0.48,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.44,
@@ -276,36 +278,43 @@ export const SITE_CONFIG: SiteConfig = {
       sparkleFactor: 0.06,
       posterFallback: 'assets/posters/ch1.webp?v=4k-fr-1',
       hotspots: [],
-      tabs: [
+      groups: [
         {
-          id: 'train',
-          label: 'Train',
-          text: 'Conducteur de train : gère le convoi sur rails, les horaires, les arrêts et le confort des passagers.',
+          bullets: [
+            {
+              lead: 'Conducteur de train',
+              text: 'gère un véhicule sur rails, avec ses horaires, ses arrêts et ses passagers.',
+            },
+            {
+              lead: 'Équipage de sous-marin',
+              text: "travaille sous l'eau, en espace fermé, avec des procédures de sécurité strictes.",
+            },
+            {
+              lead: 'Pilote',
+              text: 'surveille écrans, capteurs et systèmes très avancés, prêt à reprendre la main à tout moment.',
+            },
+          ],
         },
-        {
-          id: 'sub',
-          label: 'Sous-marin',
-          text: 'Équipage de sous-marin : travaille sous la mer en espace fermé avec des procédures de sécurité strictes.',
-        },
-        {
-          id: 'pilot',
-          label: 'Pilote',
-          text: 'Pilote : surveille écrans, capteurs et systèmes avancés, prêt à reprendre les commandes à tout instant.',
-        },
+      ],
+      miniStats: [
+        { label: 'Durée', value: 'Quelques minutes' },
+        { label: 'Vitesse', value: 'Centaines de km/h' },
+        { label: 'Énergie', value: '100 % électrique' },
+        { label: 'Lieu & équipe', value: 'Fond marin · lien surface' },
       ],
     },
     {
       id: 'kelp-skyline',
       index: 2,
       label: 'Pourquoi demain',
-      stationCode: 'MRK-02',
-      headline: 'Plus vite, propre, hors météo',
-      body: 'Tempêtes, vagues et brouillard bloquent bateaux et avions, pas le tunnel. Propre et électrique, il prolonge déjà le tunnel sous la Manche.',
-      fact: 'Inspiration réelle : le tunnel sous la Manche existe déjà',
+      stationCode: 'SEC-01 · ENJEUX',
+      headline: 'Plus vite, plus propre, pas de science-fiction',
+      body: 'Relier deux côtes séparées par la mer en quelques minutes répond aux besoins de transport de demain :',
+      fact: "À retenir : rapidité, écologie et sécurité dans un décor que presque personne ne connaît.",
       videoStart: 1.95,
       videoEnd: 3.0,
-      scrollVh: 175,
-      dwell: 0.48,
+      scrollVh: 195,
+      dwell: 0.52,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.5,
@@ -316,36 +325,41 @@ export const SITE_CONFIG: SiteConfig = {
       sparkleFactor: 0.1,
       posterFallback: 'assets/posters/ch2.webp?v=4k-fr-1',
       hotspots: [],
-      tabs: [
+      groups: [
         {
-          id: 'speed',
-          label: 'Rapidité',
-          text: 'Relier deux côtes séparées par la mer en quelques minutes à plusieurs centaines de km/h.',
-        },
-        {
-          id: 'eco',
-          label: 'Écologie',
-          text: '100 % électrique : une alternative bien moins polluante que les traversées en avion ou en bateau.',
-        },
-        {
-          id: 'weather',
-          label: 'Météo',
-          text: 'Dans un tunnel protégé au fond de l’eau, le train circule en toute saison malgré les tempêtes.',
+          bullets: [
+            {
+              lead: 'Aller plus vite',
+              text: 'les villes grandissent et les voyageurs veulent traverser la mer rapidement.',
+            },
+            {
+              lead: 'Transport plus propre',
+              text: '100 % électrique, il réduit fortement la pollution face aux avions et bateaux.',
+            },
+            {
+              lead: 'Hors météo',
+              text: 'tempêtes, grosses vagues et brouillard ne bloquent pas un tunnel protégé.',
+            },
+            {
+              lead: 'Déjà réel',
+              text: 'le tunnel sous la Manche (France–Angleterre) existe déjà ; celui du futur sera plus long et plus rapide.',
+            },
+          ],
         },
       ],
     },
     {
       id: 'cab',
       index: 3,
-      label: 'Le poste de pilotage',
-      stationCode: 'POV-03',
-      headline: 'Humain et machine aux commandes',
-      body: "L'IA assure une grande partie de la conduite, mais seul un humain sait décider quand survient l'imprévu.",
-      fact: 'Journée type : vérifier, surveiller, réagir (touche les points)',
+      label: 'Quotidien & IA',
+      stationCode: 'SEC-02 · PILOTAGE',
+      headline: 'Humain et machine : vérifier et surveiller',
+      body: "L'IA automatise une grande partie de la conduite, mais un humain formé reste indispensable face à l'imprévu. Sa journée repose sur trois mots : vérifier, surveiller, réagir.",
+      fact: 'Lien permanent : avant et pendant le trajet, contact constant avec le centre de contrôle à la surface.',
       videoStart: 3.0,
       videoEnd: 5.0,
-      scrollVh: 265,
-      dwell: 0.56,
+      scrollVh: 270,
+      dwell: 0.58,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.5,
@@ -356,19 +370,36 @@ export const SITE_CONFIG: SiteConfig = {
       sparkleFactor: 0.12,
       posterFallback: 'assets/posters/ch3.webp?v=4k-fr-1',
       hotspots: [],
+      groups: [
+        {
+          bullets: [
+            {
+              lead: 'Avant le départ (inspection)',
+              text: 'vérifier les freins, les portes, les systèmes électriques, le niveau d’énergie et l’état du tunnel.',
+            },
+            {
+              lead: 'Centre de contrôle',
+              text: 'confirmer l’itinéraire, les conditions du tunnel et les capteurs avec la surface.',
+            },
+            {
+              lead: 'Pendant le trajet',
+              text: 'surveiller sur écrans la vitesse, la pression de l’eau, les fuites éventuelles et l’énergie ; si un voyant change, agir aussitôt.',
+            },
+          ],
+        },
+      ],
     },
     {
       id: 'sunken-arch',
       index: 4,
-      label: 'Compétences & formation',
-      stationCode: 'STN-04',
-      headline: 'Compétences et parcours exigeant',
-      body: "Études techniques, centaines d'heures sur simulateur de pannes, secours sous-marins et contrôles médicaux réguliers.",
-      fact: '5 atouts clés : technique, sang-froid, décision, équipe, espace clos',
+      label: 'Urgences & compétences',
+      stationCode: 'SEC-02 · SÉCURITÉ',
+      headline: "En cas d'urgence et compétences clés",
+      body: "Chaque seconde compte : si un capteur détecte une fuite, chaque geste a été répété des centaines de fois à l'entraînement.",
       videoStart: 5.0,
       videoEnd: 7.0,
-      scrollVh: 255,
-      dwell: 0.54,
+      scrollVh: 265,
+      dwell: 0.56,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.5,
@@ -379,19 +410,45 @@ export const SITE_CONFIG: SiteConfig = {
       sparkleFactor: 0.24,
       posterFallback: 'assets/posters/ch4.webp?v=4k-fr-1',
       hotspots: [],
-      trainingSteps: ['Études tech', 'Simulateur', 'Secours', 'Bilan médical'],
+      groups: [
+        {
+          title: "Réflexes d'urgence (en cas de fuite)",
+          bullets: [
+            {
+              text: 'Rester calme, prévenir le centre de contrôle, ralentir ou arrêter le train, suivre le plan de sécurité et guider les passagers vers les zones de protection.',
+            },
+          ],
+        },
+        {
+          title: 'Les 5 compétences indispensables',
+          bullets: [
+            {
+              lead: 'Technique',
+              text: 'comprendre électronique, mécanique et automatisation.',
+            },
+            {
+              lead: 'Sang-froid & rapidité',
+              text: 'garder son calme sous des millions de litres d’eau et décider en quelques secondes.',
+            },
+            {
+              lead: 'Équipe & espace clos',
+              text: 'communication courte avec ingénieurs/surface, et aisance sans fenêtre sur le ciel ni grand air.',
+            },
+          ],
+        },
+      ],
     },
     {
       id: 'glow-zone',
       index: 5,
-      label: 'Avantages & défis',
-      stationCode: 'TRN-05',
-      headline: 'Avantages et difficultés des abysses',
-      body: 'À 380 m, la pression est colossale et chaque décision engage la vie des passagers. En retour : un métier rare, utile et fascinant.',
-      fact: 'À retenir : rapidité, écologie, sécurité et maîtrise sous pression',
+      label: 'La formation',
+      stationCode: 'SEC-02 · FORMATION',
+      headline: 'Comment devenir conducteur sous-marin ?',
+      body: 'La formation est longue et exigeante, à la hauteur des responsabilités sous 380 mètres d’océan :',
+      fact: 'À retenir : inspection, surveillance et réaction rapide exigent technique, calme et esprit d’équipe.',
       videoStart: 7.0,
       videoEnd: 9.25,
-      scrollVh: 275,
+      scrollVh: 265,
       dwell: 0.55,
       textSide: 'right',
       textVertical: 'top',
@@ -403,31 +460,41 @@ export const SITE_CONFIG: SiteConfig = {
       sparkleFactor: 1.0,
       posterFallback: 'assets/posters/ch5.webp?v=4k-fr-1',
       hotspots: [],
-      tabs: [
+      trainingSteps: ['Études tech', 'Simulateur', 'Secours', 'Bilan médical'],
+      groups: [
         {
-          id: 'pros',
-          label: 'Avantages',
-          text: 'Salaire élevé · Technologie IA & capteurs · Décor océanique unique · Transport propre · Travail utile et fier.',
-        },
-        {
-          id: 'cons',
-          label: 'Difficultés',
-          text: 'Pression énorme · Risque de fuites/pannes · Espace fermé sans lumière du jour · Lourde responsabilité · Longue formation.',
+          bullets: [
+            {
+              lead: 'Études techniques ou d’ingénieur',
+              text: 'électronique, mécanique, automatisation ou transport.',
+            },
+            {
+              lead: 'Formation sur simulateur',
+              text: 'des centaines d’heures sur une copie exacte du train avec toutes sortes de pannes simulées.',
+            },
+            {
+              lead: 'Secours et sauvetage',
+              text: 'formations proches de celles des pompiers ou des équipages de sous-marins.',
+            },
+            {
+              lead: 'Contrôles médicaux et physiques réguliers',
+              text: 'car la sécurité passe avant tout.',
+            },
+          ],
         },
       ],
     },
     {
       id: 'dome-approach',
       index: 6,
-      label: 'Pour toi ?',
-      stationCode: 'STN-06',
-      headline: 'Ce métier est-il fait pour toi ?',
-      body: 'Idéal si tu aimes la technologie, le travail en équipe, les défis et garder ton calme. Plus dur si les espaces clos te pèsent.',
-      fact: 'Sang-froid : garder son calme même quand une alarme sonne',
+      label: 'Avantages & défis',
+      stationCode: 'SEC-03 · BILAN',
+      headline: 'Les avantages et les difficultés',
+      body: 'Comme tout grand métier, celui de conducteur sous-marin réunit de forts atouts et de réelles exigences :',
       videoStart: 9.25,
       videoEnd: 12.0,
-      scrollVh: 225,
-      dwell: 0.45,
+      scrollVh: 255,
+      dwell: 0.52,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.42,
@@ -438,15 +505,39 @@ export const SITE_CONFIG: SiteConfig = {
       sparkleFactor: 0.28,
       posterFallback: 'assets/posters/ch6.webp?v=4k-fr-1',
       hotspots: [],
+      twoColGroups: true,
+      groups: [
+        {
+          title: 'Les avantages',
+          tone: 'pro',
+          bullets: [
+            { text: 'Salaire élevé (métier rare et très spécialisé).' },
+            { text: 'Technologie de pointe : IA, automatisation et capteurs.' },
+            { text: 'Point de vue unique au fond de l’océan.' },
+            { text: 'Impact positif : transport électrique propre.' },
+            { text: 'Travail utile : mener des centaines de passagers à bon port.' },
+          ],
+        },
+        {
+          title: 'Les difficultés',
+          tone: 'con',
+          bullets: [
+            { text: 'Pression énorme de l’eau sur le tunnel.' },
+            { text: 'Risque de fuites et de pannes toujours possible.' },
+            { text: 'Environnement fermé sans lumière du jour ni horizon.' },
+            { text: 'Immense responsabilité envers la vie des passagers.' },
+            { text: 'Formation longue et contrôles réguliers exigeants.' },
+          ],
+        },
+      ],
     },
     {
       id: 'platform',
       index: 7,
-      label: 'Quai & rapport',
-      stationCode: 'STN-07',
-      headline: 'À l’arrivée : le rapport technique',
-      body: "Une fois les passagers descendus en sécurité, tu notes le moindre détail inhabituel puis tu passes le train à l'équipe suivante.",
-      fact: 'Vitesse à quai : 0 km/h · Contrôle complet avant chaque relève',
+      label: 'Arrivée & profil',
+      stationCode: 'SEC-02 & 03 · PROFIL',
+      headline: "À l'arrivée : rapport et profil idéal",
+      body: "Une fois les passagers à quai, le conducteur rédige un rapport complet notant le moindre détail inhabituel, puis passe le train à l'équipe suivante.",
       videoStart: 12.0,
       videoEnd: 16.25,
       scrollVh: 255,
@@ -461,19 +552,34 @@ export const SITE_CONFIG: SiteConfig = {
       sparkleFactor: 0.1,
       posterFallback: 'assets/posters/ch7.webp?v=4k-fr-1',
       hotspots: [],
+      groups: [
+        {
+          title: 'Ce métier est-il fait pour toi ?',
+          bullets: [
+            {
+              lead: 'Idéal si tu aimes',
+              text: 'la technologie et les machines, les défis, rester calme, le travail en équipe et les vraies responsabilités.',
+            },
+            {
+              lead: 'Moins adapté si',
+              text: 'tu supportes mal les espaces fermés ou le stress, ou préfères un poste sans responsabilité importante.',
+            },
+          ],
+        },
+      ],
     },
     {
       id: 'arrival',
       index: 8,
-      label: 'Le futur',
-      stationCode: 'STN-08',
-      headline: 'Prêt à prendre les commandes ?',
-      body: "Il y a un siècle, voler en avion semblait fou. Demain, l'un d'entre nous sera peut-être le premier conducteur sous l'océan.",
-      fact: "Un métier d'avenir entre intelligence artificielle et sang-froid humain",
+      label: 'Le futur & conclusion',
+      stationCode: 'SEC-03 · CONCLUSION',
+      headline: 'Demain, prendre les commandes ?',
+      body: "Il y a un peu plus d'un siècle, voler en avion semblait impossible. Comme chaque grande invention, ce métier deviendra réel et aura besoin de personnes courageuses, calmes et bien formées — capables de faire confiance à la technologie sans jamais cesser de réfléchir. Qui sait ? Peut-être que l'un d'entre nous sera le premier à prendre les commandes.",
+      fact: 'Un métier difficile et exigeant, mais au salaire élevé, utile et au décor unique.',
       videoStart: 16.25,
       videoEnd: 20.0,
-      scrollVh: 265,
-      dwell: 0.44,
+      scrollVh: 270,
+      dwell: 0.46,
       textSide: 'right',
       textVertical: 'top',
       focalX: 0.5,
@@ -499,8 +605,8 @@ export const SITE_CONFIG: SiteConfig = {
     throttleCruise: 'CROISIÈRE',
     throttleFull: 'PLEIN RÉGIME',
     replayLabel: 'Rejouer le voyage',
-    ctaPrimary: 'Lire le dossier complet',
-    quizButton: "Test d'aptitude (3 questions)",
+    ctaPrimary: "Test d'aptitude (3 questions)",
+    quizButton: 'Lire aussi en vue Dossier complet',
   },
 
   audio: {
@@ -530,7 +636,10 @@ export const SITE_CONFIG: SiteConfig = {
       id: 'q2',
       prompt: '2. Que faire en priorité si un capteur détecte une fuite ?',
       options: [
-        { value: 'calm', label: 'Rester calme, prévenir le centre de contrôle, ralentir et guider les passagers' },
+        {
+          value: 'calm',
+          label: 'Rester calme, prévenir le centre de contrôle, ralentir et guider les passagers',
+        },
         { value: 'accel', label: 'Accélérer au maximum sans prévenir la surface' },
       ],
       correctValue: 'calm',
@@ -539,7 +648,10 @@ export const SITE_CONFIG: SiteConfig = {
       id: 'q3',
       prompt: '3. Quel élément est indispensable pour accéder au poste ?',
       options: [
-        { value: 'sim', label: 'Études techniques, centaines d’heures de simulateur, secours et bilans médicaux' },
+        {
+          value: 'sim',
+          label: 'Études techniques, centaines d’heures de simulateur, secours et bilans médicaux',
+        },
         { value: 'permis', label: 'Un simple permis de conduire classique' },
       ],
       correctValue: 'sim',
