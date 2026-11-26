@@ -40,24 +40,24 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
   return t * t * (3 - 2 * t);
 }
 
-/** Monotonic C-infinity dwell curve: slower in chapter middle (t=0.5), smoother across cuts */
+/** Monotonic C-infinity dwell curve: subtle smooth easing without sluggish middle stalls */
 function applyDwellCurve(t: number, dwell: number): number {
-  const d = Math.max(0, Math.min(0.75, dwell));
+  const d = Math.max(0, Math.min(0.25, dwell));
   return t + (d * Math.sin(2 * Math.PI * t)) / (2 * Math.PI);
 }
 
-/** Deterministic envelope: ensures a clean exit before the next chapter card enters */
+/** Deterministic envelope: keeps active chapter card visible across ~95% of its window */
 function computeCardEnvelope(localT: number, index: number, totalChapters: number): number {
   if (index === 0) {
-    // Hero starts fully visible at 0 and exits cleanly before cut
-    return localT < 0.78 ? 1 : 1 - smoothstep(0.78, 0.94, localT);
+    // Hero starts fully visible at 0 and exits cleanly near boundary
+    return localT < 0.88 ? 1 : 1 - smoothstep(0.88, 0.99, localT);
   }
   if (index === totalChapters - 1) {
     // Final chapter enters cleanly and remains visible through the end
-    return smoothstep(0.06, 0.2, localT);
+    return smoothstep(0.01, 0.08, localT);
   }
-  const enter = smoothstep(0.06, 0.2, localT);
-  const exit = 1 - smoothstep(0.78, 0.94, localT);
+  const enter = smoothstep(0.01, 0.08, localT);
+  const exit = 1 - smoothstep(0.88, 0.99, localT);
   return Math.min(enter, exit);
 }
 
@@ -108,11 +108,11 @@ export function initCinematicTimeline(opts: {
 
   // Lenis smooth scroll
   const lenis = new Lenis({
-    duration: reducedMotion ? 0.2 : 0.95,
+    duration: reducedMotion ? 0.2 : 0.88,
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
-    wheelMultiplier: 1.0,
-    touchMultiplier: 1.35,
+    wheelMultiplier: 0.95,
+    touchMultiplier: 1.25,
   });
   lenis.on('scroll', ScrollTrigger.update);
 
@@ -122,6 +122,7 @@ export function initCinematicTimeline(opts: {
     scrollProgress: 0,
     targetTime: 0,
     smoothedTime: 0,
+    displayTime: 0,
     velocitySmooth: 0,
     sonarDeg: 0,
     activeChapterIdx: 0,
@@ -170,13 +171,14 @@ export function initCinematicTimeline(opts: {
     });
   };
 
-  // Main 60fps loop synced with Lenis + GSAP ticker
-  gsap.ticker.add((timeSec) => {
+  // Main 60fps/120fps loop synced with Lenis + GSAP ticker (delta-time normalized)
+  gsap.ticker.add((timeSec, deltaMs) => {
     lenis.raf(timeSec * 1000);
+    const dt = Math.min(0.05, Math.max(0.001, (deltaMs || 16.67) / 1000));
 
     const rawVel = Math.abs(lenis.velocity || 0);
     const velTarget = Math.min(1, rawVel / 40);
-    state.velocitySmooth = lerp(state.velocitySmooth, velTarget, 0.11);
+    state.velocitySmooth = lerp(state.velocitySmooth, velTarget, 1 - Math.exp(-9 * dt));
 
     const p = state.scrollProgress;
     const vel = state.velocitySmooth;
@@ -197,9 +199,18 @@ export function initCinematicTimeline(opts: {
 
     // Map dwelled chapter progress -> exact video timestamp
     state.targetTime = lerp(ch.videoStart, ch.videoEnd, dwelledT);
-    state.smoothedTime = reducedMotion
-      ? state.targetTime
-      : lerp(state.smoothedTime, state.targetTime, SITE_CONFIG.scrubLerp);
+    const scrubAlpha = reducedMotion ? 1 : 1 - Math.exp(-15 * dt);
+    state.smoothedTime = lerp(state.smoothedTime, state.targetTime, scrubAlpha);
+
+    // Blend smoothly while moving; gently settle onto the nearest sharp frame when idle
+    const isMoving =
+      rawVel > 0.025 || Math.abs(state.targetTime - state.smoothedTime) > 0.0025;
+    if (isMoving || reducedMotion) {
+      state.displayTime = state.smoothedTime;
+    } else {
+      const crispFrameTime = scrubber.getSnapTime(state.targetTime);
+      state.displayTime = lerp(state.displayTime, crispFrameTime, 1 - Math.exp(-14 * dt));
+    }
 
     if (ch.index !== state.activeChapterIdx) {
       state.activeChapterIdx = ch.index;
@@ -301,8 +312,8 @@ export function initCinematicTimeline(opts: {
       }
     }
 
-    // Sunken Arch 3-or-4-step certification rail
-    if (ch.id === 'sunken-arch' && cityStepNodes.length >= 3) {
+    // Formation 4-step certification rail
+    if (ch.id === 'glow-zone' && cityStepNodes.length >= 3) {
       const activeStep = Math.min(
         cityStepNodes.length - 1,
         Math.floor(localT * cityStepNodes.length)
@@ -313,19 +324,16 @@ export function initCinematicTimeline(opts: {
       });
     }
 
-    // Tiny idle drift & capped micro-scale (strictly <= 1.045x, never soft)
-    const idleBreath = reducedMotion ? 0 : 0.008 * (0.5 + 0.5 * Math.sin(timeSec * 0.85));
-    const speedZoom = reducedMotion ? 0 : vel * 0.022;
-    const scaleMultiplier = Math.min(1.045, 1 + idleBreath + speedZoom);
-    const driftX = reducedMotion ? 0 : Math.sin(timeSec * 0.55) * 3.0;
-    const driftY = reducedMotion ? 0 : Math.cos(timeSec * 0.42) * 2.0;
+    // Zero idle vibration: only subtle velocity micro-zoom while scrolling, settling to exact 1.0 when stopped
+    const speedZoom = reducedMotion || vel < 0.01 ? 0 : vel * 0.018;
+    const scaleMultiplier = Math.min(1.025, 1 + speedZoom);
 
     // Interpolate mobile focal crop smoothly into next chapter near boundaries
     const nextCh = ranges[Math.min(ranges.length - 1, ch.index + 1)];
     const gradeBlend = Math.max(0, (localT - 0.65) / 0.35);
     const focalX = lerp(ch.focalX, nextCh.focalX, gradeBlend);
 
-    scrubber.render(state.smoothedTime, focalX, scaleMultiplier, ch.index, driftX, driftY);
+    scrubber.render(state.displayTime, focalX, scaleMultiplier, ch.index);
 
     fxCanvas.setState({
       velocityNorm: vel,

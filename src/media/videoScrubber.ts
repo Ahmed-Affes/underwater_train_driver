@@ -27,7 +27,7 @@ export class VideoScrubber {
   private decodingFlags: boolean[] = [];
   private decodeQueue: number[] = [];
   private activeDecodes = 0;
-  private readonly maxConcurrentDecodes = 4;
+  private readonly maxConcurrentDecodes = 6;
 
   private posterImages: Map<number, HTMLImageElement> = new Map();
   private useVideoMode: boolean;
@@ -38,11 +38,9 @@ export class VideoScrubber {
   private dpr = 1;
 
   private lastDrawnIdx = -1;
-  private lastDrawnFocal = -1;
-  private lastDrawnSize = '';
+  private lastDrawKey = '';
   private lastTransformKey = '';
   private lastTargetIdx = 0;
-  private lastFocalX = 0.5;
   private priorityIndex = 0;
 
   constructor(canvas: HTMLCanvasElement, reducedMotion: boolean) {
@@ -54,7 +52,7 @@ export class VideoScrubber {
     this.tier = this.selectTier();
     this.useVideoMode = !reducedMotion && SITE_CONFIG.playbackEngine === 'video';
     this.maxDecodedCache =
-      this.tier.id === 'mobile' ? 90 : this.tier.id === 'tablet' ? 120 : 180;
+      this.tier.id === 'mobile' ? 110 : this.tier.id === 'tablet' ? 160 : 240;
 
     this.frameBlobs = new Array(this.tier.frameCount).fill(null);
     this.fetchingFlags = new Array(this.tier.frameCount).fill(false);
@@ -79,7 +77,7 @@ export class VideoScrubber {
     this.canvas.height = Math.round(this.height * this.dpr);
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     this.lastDrawnIdx = -1;
-    this.lastDrawnSize = '';
+    this.lastDrawKey = '';
   }
 
   private frameUrl(zeroBasedIndex: number): string {
@@ -162,10 +160,9 @@ export class VideoScrubber {
       this.decodedFrames.set(index, asset);
       this.evictFarthest(this.lastTargetIdx);
 
-      // Repaint immediately if user is currently on this frame
-      if (index === this.lastTargetIdx && this.lastDrawnIdx !== index) {
-        this.lastDrawnIdx = index;
-        this.drawCover(asset, this.lastFocalX);
+      // Repaint immediately if user is currently on or adjacent to this frame
+      if (Math.abs(index - this.lastTargetIdx) <= 1) {
+        this.lastDrawKey = '';
       }
     } catch {
       // Nearest decoded frame covers cleanly
@@ -283,7 +280,7 @@ export class VideoScrubber {
         }
         if (nextIdx === null) break;
         const blob = await this.fetchBlob(nextIdx);
-        if (blob && Math.abs(nextIdx - this.lastTargetIdx) <= 36) {
+        if (blob && Math.abs(nextIdx - this.lastTargetIdx) <= 48) {
           this.enqueueDecode(nextIdx);
         }
       }
@@ -301,11 +298,18 @@ export class VideoScrubber {
     this.warmWindow(idx);
   }
 
+  getSnapTime(timeSec: number): number {
+    const maxIdx = Math.max(1, this.tier.frameCount - 1);
+    const norm = Math.max(0, Math.min(1, timeSec / SITE_CONFIG.durationSec));
+    const snappedNorm = Math.round(norm * maxIdx) / maxIdx;
+    return snappedNorm * SITE_CONFIG.durationSec;
+  }
+
   private warmWindow(centerIdx: number): void {
     if (!this.decodedFrames.has(centerIdx) && this.frameBlobs[centerIdx]) {
       this.enqueueDecode(centerIdx);
     }
-    for (let offset = 1; offset <= 16; offset++) {
+    for (let offset = 1; offset <= 28; offset++) {
       const fwd = centerIdx + offset;
       const bwd = centerIdx - offset;
       if (fwd < this.tier.frameCount && this.frameBlobs[fwd] && !this.decodedFrames.has(fwd)) {
@@ -366,23 +370,21 @@ export class VideoScrubber {
     timeSec: number,
     focalX: number,
     scaleMultiplier: number,
-    activeChapterIdx: number,
-    driftX = 0,
-    driftY = 0
+    activeChapterIdx: number
   ): void {
-    // Apply subtle breathing/velocity scale cleanly on GPU compositor without rescaling canvas pixels
-    const clampedScale = Math.min(1.03, Math.max(1.0, scaleMultiplier));
-    const tKey = `${clampedScale.toFixed(4)}:${driftX.toFixed(1)}:${driftY.toFixed(1)}`;
+    // Only apply speed zoom when actively moving; lock transform to 'none' when idle (zero vibration)
+    const clampedScale = Math.min(1.025, Math.max(1.0, scaleMultiplier));
+    const tKey = clampedScale <= 1.0004 ? 'none' : clampedScale.toFixed(4);
     if (tKey !== this.lastTransformKey) {
       this.lastTransformKey = tKey;
-      this.canvas.style.transform = `translate3d(${driftX.toFixed(1)}px, ${driftY.toFixed(1)}px, 0) scale(${clampedScale.toFixed(4)})`;
+      this.canvas.style.transform = tKey === 'none' ? 'none' : `scale(${tKey})`;
     }
 
     if (this.reducedMotion) {
       const poster = this.posterImages.get(activeChapterIdx) || this.posterImages.get(0);
       if (poster && this.lastDrawnIdx !== activeChapterIdx) {
         this.lastDrawnIdx = activeChapterIdx;
-        this.drawCover(poster, focalX);
+        this.drawCover(poster, focalX, 1);
       }
       return;
     }
@@ -392,41 +394,43 @@ export class VideoScrubber {
       if (Math.abs(this.videoEl.currentTime - target) > 0.008) {
         this.videoEl.currentTime = target;
       }
-      this.drawCover(this.videoEl, focalX);
+      this.drawCover(this.videoEl, focalX, 1);
       return;
     }
 
     const norm = Math.max(0, Math.min(1, timeSec / SITE_CONFIG.durationSec));
-    const idx = Math.max(
-      0,
-      Math.min(this.tier.frameCount - 1, Math.round(norm * (this.tier.frameCount - 1)))
-    );
+    const maxIdx = this.tier.frameCount - 1;
+    const exactIdx = Math.max(0, Math.min(maxIdx, norm * maxIdx));
+    const idxA = Math.floor(exactIdx);
+    const idxB = Math.min(maxIdx, idxA + 1);
+    const frac = exactIdx - idxA;
 
-    if (idx !== this.lastTargetIdx) {
-      this.lastTargetIdx = idx;
-      this.warmWindow(idx);
+    const nearestTarget = Math.round(exactIdx);
+    if (nearestTarget !== this.lastTargetIdx) {
+      this.lastTargetIdx = nearestTarget;
+      this.warmWindow(nearestTarget);
     }
-    this.lastFocalX = focalX;
 
-    const sizeKey = `${this.width}x${this.height}`;
+    const exactA = this.decodedFrames.get(idxA);
+    const exactB = idxB !== idxA ? this.decodedFrames.get(idxB) : undefined;
+    const frameA = exactA || this.findNearestDecoded(idxA);
+    if (!frameA) return;
+
+    const canBlend = Boolean(exactA && exactB && frac > 0.015 && frac < 0.985);
+    const alphaStep = canBlend ? Math.round(frac * 100) : 0;
     const roundedFocal = Math.round(focalX * 50) / 50;
+    const actualKey = `${exactA ? idxA : 'f'}:${canBlend ? idxB : -1}:${alphaStep}:${roundedFocal}:${this.width}x${this.height}`;
 
-    if (
-      idx === this.lastDrawnIdx &&
-      roundedFocal === this.lastDrawnFocal &&
-      sizeKey === this.lastDrawnSize
-    ) {
-      // Exact frame already on canvas — skip redundant draw!
+    if (actualKey === this.lastDrawKey) {
       return;
     }
+    this.lastDrawKey = actualKey;
+    this.lastDrawnIdx = idxA;
 
-    const frame = this.findNearestDecoded(idx);
-    if (!frame) return;
-
-    this.lastDrawnIdx = idx;
-    this.lastDrawnFocal = roundedFocal;
-    this.lastDrawnSize = sizeKey;
-    this.drawCover(frame, roundedFocal);
+    this.drawCover(frameA, roundedFocal, 1);
+    if (canBlend && exactB) {
+      this.drawCover(exactB, roundedFocal, frac);
+    }
   }
 
   private findNearestDecoded(targetIdx: number): FrameAsset | null {
@@ -441,7 +445,7 @@ export class VideoScrubber {
     return null;
   }
 
-  private drawCover(source: FrameAsset | HTMLVideoElement, focalX: number): void {
+  private drawCover(source: FrameAsset | HTMLVideoElement, focalX: number, alpha = 1): void {
     const srcW =
       source instanceof HTMLVideoElement ? source.videoWidth || 1920 : source.width;
     const srcH =
@@ -453,6 +457,9 @@ export class VideoScrubber {
 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+    if (alpha < 1) {
+      ctx.globalAlpha = alpha;
+    }
 
     if (isPortraitMobile) {
       const cinemaHeight = height * 0.56;
@@ -463,9 +470,12 @@ export class VideoScrubber {
       const offsetX = Math.round(-overflowX * focalX);
       const offsetY = Math.round(height * 0.09 + (cinemaHeight - drawH) * 0.5);
 
-      ctx.fillStyle = '#020a11';
-      ctx.fillRect(0, 0, width, height);
+      if (alpha >= 1) {
+        ctx.fillStyle = '#020a11';
+        ctx.fillRect(0, 0, width, height);
+      }
       ctx.drawImage(source, offsetX, offsetY, drawW, drawH);
+      if (alpha < 1) ctx.globalAlpha = 1;
       return;
     }
 
@@ -478,5 +488,8 @@ export class VideoScrubber {
     const offsetY = Math.round(-overflowY * 0.5);
 
     ctx.drawImage(source, offsetX, offsetY, drawW, drawH);
+    if (alpha < 1) {
+      ctx.globalAlpha = 1;
+    }
   }
 }
