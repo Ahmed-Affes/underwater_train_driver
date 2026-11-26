@@ -811,18 +811,18 @@ body {
 
 .chapter-card {
   position: fixed;
-  top: 4.75rem;
-  right: clamp(5.8rem, 8.2vw, 7.8rem);
-  width: min(510px, 39vw);
+  top: 4.55rem;
+  right: clamp(5.5rem, 7.6vw, 7.2rem);
+  width: min(560px, 42vw);
   min-width: 310px;
-  max-height: calc(100vh - 6rem);
+  max-height: calc(100vh - 5.6rem);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(34, 211, 238, 0.35) transparent;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  padding: 1.2rem 1.4rem;
+  padding: 1.05rem 1.25rem;
   border-radius: 14px;
   background: linear-gradient(270deg,
       rgba(2, 12, 22, 0.94) 0%,
@@ -885,10 +885,10 @@ body {
 }
 
 .chapter-headline {
-  margin: 0 0 0.65rem;
+  margin: 0 0 0.55rem;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.55rem, 2.3vw, 2.1rem);
+  font-size: clamp(1.42rem, 2.05vw, 1.88rem);
   line-height: 1.14;
   letter-spacing: -0.02em;
   color: #ffffff;
@@ -896,33 +896,33 @@ body {
 }
 
 .chapter-headline.is-hero {
-  font-size: clamp(1.75rem, 2.55vw, 2.35rem);
+  font-size: clamp(1.62rem, 2.25vw, 2.08rem);
   font-weight: 800;
 }
 
 .hero-subline {
-  margin: 0 0 0.55rem;
-  font-size: 1.14rem;
-  line-height: 1.4;
+  margin: 0 0 0.48rem;
+  font-size: 1.06rem;
+  line-height: 1.38;
   font-weight: 600;
   color: #bae6fd;
 }
 
 .chapter-body {
   margin: 0;
-  font-size: 1.04rem;
-  line-height: 1.58;
+  font-size: 0.98rem;
+  line-height: 1.5;
   color: #f8fafc;
 }
 
 .chapter-fact {
-  margin: 0.75rem 0 0;
-  padding-top: 0.65rem;
+  margin: 0.65rem 0 0;
+  padding-top: 0.55rem;
   border-top: 1px solid rgba(165, 243, 252, 0.22);
   font-family: var(--font-sans);
   font-weight: 600;
-  font-size: 0.92rem;
-  line-height: 1.48;
+  font-size: 0.9rem;
+  line-height: 1.44;
   color: #fde68a;
 }
 
@@ -971,7 +971,7 @@ body {
 }
 
 .chapter-group {
-  padding: 0.75rem 0.95rem;
+  padding: 0.62rem 0.85rem;
   border-radius: 10px;
   background: rgba(2, 10, 18, 0.72);
   border: 1px solid rgba(165, 243, 252, 0.2);
@@ -986,9 +986,9 @@ body {
 }
 
 .chapter-group-title {
-  margin: 0 0 0.45rem;
+  margin: 0 0 0.38rem;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: #67e8f9;
@@ -1004,12 +1004,12 @@ body {
 
 .chapter-bullets {
   margin: 0;
-  padding-left: 1.15rem;
+  padding-left: 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.48rem;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  gap: 0.36rem;
+  font-size: 0.91rem;
+  line-height: 1.44;
   color: #f8fafc;
 }
 
