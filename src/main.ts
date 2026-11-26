@@ -4,7 +4,7 @@ import { VideoScrubber } from './media/videoScrubber';
 import { FxOverlayCanvas } from './canvas/fxCanvas';
 import { OceanAudioEngine } from './audio/oceanAudio';
 import { HudController } from './ui/hud';
-import { initCinematicTimeline, prepareSplitText } from './scene/timeline';
+import { initCinematicTimeline } from './scene/timeline';
 
 function renderChapterSections(): void {
   const track = document.getElementById('scroll-track');
@@ -106,16 +106,17 @@ function renderChapterSections(): void {
           id="chapter-${ch.index}"
           class="chapter-section side-${ch.textSide} align-${ch.textVertical}"
           data-chapter-index="${ch.index}"
+          data-chapter-id="${ch.id}"
           style="min-height: ${totalHeightVh}vh;"
           aria-labelledby="heading-${ch.index}"
         >
-          <article class="chapter-card">
+          <article class="chapter-card ${isHero ? 'is-active' : ''}">
             <div class="chapter-kicker">
               <span class="kicker-code">${ch.stationCode}</span>
               <span aria-hidden="true">/</span>
               <span>${ch.label}</span>
             </div>
-            <${HeadingTag} id="heading-${ch.index}" class="${titleClass}" data-split>
+            <${HeadingTag} id="heading-${ch.index}" class="${titleClass}">
               ${ch.headline}
             </${HeadingTag}>
             ${extraBlock}
@@ -134,10 +135,7 @@ function mountCabOverlay(hud: HudController): void {
   const mediaHtml = cabMedia.overrideVideo
     ? cabMedia.type === 'video' && cabMedia.videoMp4
       ? `<video id="cab-video-player" class="cab-media-el" src="${cabMedia.videoMp4}" muted loop playsinline preload="metadata"></video>`
-      : `<picture class="cab-media-el">
-           ${cabMedia.imageAvif ? `<source type="image/avif" srcset="${cabMedia.imageAvif}" />` : ''}
-           <img src="${cabMedia.imageWebp}" alt="${cabMedia.alt}" loading="lazy" decoding="async" />
-         </picture>`
+      : `<img class="cab-media-el" src="${cabMedia.imageWebp}" alt="${cabMedia.alt}" loading="lazy" decoding="async" />`
     : '';
 
   const hotspotsHtml = cabMedia.hotspots
@@ -163,7 +161,7 @@ function mountCabOverlay(hud: HudController): void {
   cabEl.innerHTML = `
     ${mediaHtml}
     <div class="cab-ui-hud">
-      <!-- Cute Robot Assistant Tip Bubble -->
+      <!-- Co-Pilot Robot Assistant Tip Bubble -->
       <div class="robot-tip-bubble" role="note" aria-label="Co-pilot robot tip">
         <span class="robot-blink-eye" aria-hidden="true"></span>
         <span>${cabMedia.robotTip}</span>
@@ -173,7 +171,7 @@ function mountCabOverlay(hud: HudController): void {
       <div class="cab-hud-panel cab-hud-left">
         <div class="cab-hud-block">
           <span class="cab-hud-tag">WATER PRESSURE</span>
-          <strong id="cab-ui-pressure-val" class="cab-hud-val">8.2 ATM</strong>
+          <strong id="cab-ui-pressure-val" class="cab-hud-val">11.8 ATM</strong>
           <div class="cab-bar-track" aria-hidden="true">
             <div id="cab-ui-pressure-bar" class="cab-bar-fill"></div>
           </div>
@@ -181,7 +179,7 @@ function mountCabOverlay(hud: HudController): void {
         <div class="cab-hud-row">
           <div>
             <span class="cab-hud-tag">DEPTH</span>
-            <strong id="cab-ui-depth-val" class="cab-hud-sub">72m</strong>
+            <strong id="cab-ui-depth-val" class="cab-hud-sub">108m</strong>
           </div>
           <div>
             <span class="cab-hud-tag">HULL INTEGRITY</span>
@@ -203,7 +201,7 @@ function mountCabOverlay(hud: HudController): void {
         </div>
         <div class="cab-sonar-stats">
           <span class="cab-hud-tag">SONAR // 4KM</span>
-          <strong id="cab-ui-speed-val" class="cab-hud-val">156 km/h</strong>
+          <strong id="cab-ui-speed-val" class="cab-hud-val">158 km/h</strong>
           <div class="cab-throttle-mini">
             <span class="cab-hud-tag">THROTTLE</span>
             <div class="throttle-lever-track" aria-hidden="true">
@@ -248,7 +246,6 @@ async function bootstrap(): Promise<void> {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   renderChapterSections();
-  prepareSplitText();
   renderQuizQuestions();
 
   const videoCanvas = document.getElementById('video-canvas') as HTMLCanvasElement;
@@ -287,7 +284,7 @@ async function bootstrap(): Promise<void> {
     { passive: true }
   );
 
-  // Train Headlight Loader tied to real Chapter 0 + 1 frame decoding progress
+  // Train Headlight Loader tied to initial chapter preload progress
   const loaderEl = document.getElementById('loader');
   const progressFill = document.getElementById('loader-progress-fill');
   const pctEl = document.getElementById('loader-pct');

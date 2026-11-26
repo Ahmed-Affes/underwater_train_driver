@@ -309,14 +309,14 @@ export class HudController {
             <div class="cadet-pass-card">
               <span class="pass-badge">APPRENTICE DRIVER PASS // VERIFIED</span>
               <strong>3/3 Checks Passed — Cleared for Simulator Bay 04</strong>
-              <p>Pressure, kelp throttle etiquette, and 300-hour certification confirmed.</p>
+              <p>Pressure, Glow Zone composure, and 300-hour certification confirmed.</p>
             </div>
           `;
         } else {
           resultEl.innerHTML = `
             <div class="cadet-pass-card is-retry">
               <strong>${score}/3 Checks Passed</strong>
-              <p>Hint: Drivers monitor water pressure &amp; sonar readings, ease throttle in kelp, and complete 300 hours + hull certification.</p>
+              <p>Hint: Drivers monitor water pressure &amp; sonar readings, keep steady throttle watch in the Glow Zone, and complete 300 hours + hull certification.</p>
             </div>
           `;
         }

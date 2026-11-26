@@ -11,7 +11,7 @@
     />
     <meta
       name="description"
-      content="Scroll to pilot a futuristic underwater maglev train from a glowing departure tunnel through reefs, kelp, a sunken city, and the 380m glow zone."
+      content="Scroll to pilot a futuristic underwater maglev train from the departure tunnel through coral reefs, kelp skyline, command cab, sunken city arch, 380m glow zone, and glass-dome terminal."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,7 +23,7 @@
   <body>
     <a class="skip-link" href="#scroll-track">Skip to journey story</a>
 
-    <!-- Train Headlight Preloader (tied to real Ch0 + Ch1 preload) -->
+    <!-- Train Headlight Preloader (tied to real initial chapter preload) -->
     <div id="loader" role="status" aria-label="Loading underwater train journey">
       <div class="loader-inner">
         <div class="loader-headlights" aria-hidden="true">
@@ -47,17 +47,14 @@
       <div id="top-progress-fill" class="top-progress-fill"></div>
     </div>
 
-    <!-- Pinned Full-Screen Video Stage (Video is 100% of the visual world) -->
+    <!-- Pinned Full-Screen Video Stage (Crisp unfiltered video canvas) -->
     <div id="stage">
       <canvas id="video-canvas" aria-label="Underwater maglev train journey"></canvas>
-      <div id="color-grade" class="stage-overlay" aria-hidden="true"></div>
-      <div id="caustic-overlay" class="stage-overlay" aria-hidden="true"></div>
-      <div id="cut-bloom" class="stage-overlay" aria-hidden="true"></div>
 
-      <!-- Signature Chapter 3: Cab Interior + Real Holographic UI Gauges -->
+      <!-- Signature Command Cab Holographic UI Overlay -->
       <div id="cab-overlay" class="cab-overlay" aria-hidden="true"></div>
 
-      <!-- Overlay-Only Particles, Streaks & Cursor Ring -->
+      <!-- Overlay-Only Particles, Light Streaks & Cursor Ring -->
       <canvas id="fx-canvas" class="stage-overlay" aria-hidden="true"></canvas>
       <div id="vignette-overlay" class="stage-overlay" aria-hidden="true"></div>
 
@@ -204,7 +201,7 @@
           preload="none"
         ></video>
         <p class="video-caption-note">
-          Visual journey from departure tunnel, coral reef, command cab, kelp forest, sunken city arch, glow zone, and glass-dome arrival.
+          Full 20-second underwater maglev run: departure tunnel, coral reef, kelp skyline, command cab, sunken city arch, 380m glow zone, glass-dome terminal, platform boarding, and open horizon.
         </p>
       </div>
     </div>

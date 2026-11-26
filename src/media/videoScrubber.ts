@@ -2,15 +2,15 @@
  * PROGRESSIVE VIDEO & CANVAS FRAME-SEQUENCE SCRUBBER
  * ---------------------------------------------------------------------------
  * Supports two engines configurable in `SITE_CONFIG.playbackEngine`:
- *  1. 'frames' (default): Progressive WebP frame sequence decoded via
- *     `createImageBitmap`, drawn onto a cover-fitted `<canvas>` with:
- *       - Sub-frame crossfade blending for silky slow motion
- *       - Per-chapter mobile `focalX` crop keeping the train centered
- *       - Nearest-loaded-frame fallback (never flashes blank)
- *       - Chapters 0 + 1 preloaded before opening; Chapters 2..7 streamed
- *         progressively in the background (or prioritized on chapter jump)
- *  2. 'video': All-keyframe H.264 (-g 1) `<video>` scrubbed via currentTime
- *     inside requestAnimationFrame, with poster fallback on error.
+ *  1. 'frames' (default): Progressive WebP frame sequence with compact Blob
+ *     storage and a bounded sliding-window ImageBitmap cache for silky
+ *     forward & backward scrubbing at full devicePixelRatio sharpness.
+ *     - Desktop (>= 1200px) always loads the highest 1080p tier (480 frames).
+ *     - Tablet (768–1199px) loads 720p (400 frames).
+ *     - Mobile (< 768px) loads 540p (320 frames).
+ *     - Preloads Chapters 0–2 before unlocking the headlight loader, then
+ *       streams the rest in the background (prioritizing chapter jumps).
+ *  2. 'video': Direct `<video>` scrubbed via currentTime with poster fallback.
  */
 
 import { SITE_CONFIG, TierSpec } from '../config/siteConfig';
@@ -24,15 +24,24 @@ export class VideoScrubber {
   private reducedMotion: boolean;
   private tier: TierSpec;
 
-  private frames: (FrameAsset | null)[] = [];
-  private loadingFlags: boolean[] = [];
+  private frameBlobs: (Blob | null)[] = [];
+  private decodedFrames: Map<number, FrameAsset> = new Map();
+  private fetchingFlags: boolean[] = [];
+  private decodingFlags: boolean[] = [];
   private posterImages: Map<number, HTMLImageElement> = new Map();
   private useVideoMode: boolean;
 
+  private maxDecodedCache: number;
+  private decodeRadius = 18;
   private width = 0;
   private height = 0;
   private dpr = 1;
   private lastDrawnKey = '';
+  private lastFocalX = 0.5;
+  private lastScale = 1;
+  private lastDriftX = 0;
+  private lastDriftY = 0;
+  private lastTargetIdx = 0;
   private priorityIndex = 0;
 
   constructor(canvas: HTMLCanvasElement, reducedMotion: boolean) {
@@ -43,9 +52,11 @@ export class VideoScrubber {
     this.reducedMotion = reducedMotion;
     this.tier = this.selectTier();
     this.useVideoMode = !reducedMotion && SITE_CONFIG.playbackEngine === 'video';
+    this.maxDecodedCache = this.tier.id === 'mobile' ? 48 : 72;
 
-    this.frames = new Array(this.tier.frameCount).fill(null);
-    this.loadingFlags = new Array(this.tier.frameCount).fill(false);
+    this.frameBlobs = new Array(this.tier.frameCount).fill(null);
+    this.fetchingFlags = new Array(this.tier.frameCount).fill(false);
+    this.decodingFlags = new Array(this.tier.frameCount).fill(false);
 
     this.resize();
   }
@@ -53,16 +64,16 @@ export class VideoScrubber {
   private selectTier(): TierSpec {
     const w = window.innerWidth;
     if (w < 768) return SITE_CONFIG.tiers.mobile;
-    if (w < 1200) return SITE_CONFIG.tiers.laptop;
+    if (w < 1200) return SITE_CONFIG.tiers.tablet;
     return SITE_CONFIG.tiers.desktop;
   }
 
   resize(): void {
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.dpr = Math.min(window.devicePixelRatio || 1, 3);
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.canvas.width = Math.floor(this.width * this.dpr);
-    this.canvas.height = Math.floor(this.height * this.dpr);
+    this.canvas.width = Math.round(this.width * this.dpr);
+    this.canvas.height = Math.round(this.height * this.dpr);
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     this.lastDrawnKey = '';
   }
@@ -73,28 +84,75 @@ export class VideoScrubber {
     return this.tier.pattern.replace('{index}', numStr);
   }
 
-  private async fetchAndDecodeFrame(index: number): Promise<void> {
-    if (index < 0 || index >= this.tier.frameCount) return;
-    if (this.frames[index] || this.loadingFlags[index]) return;
-    this.loadingFlags[index] = true;
+  private async fetchBlob(index: number): Promise<Blob | null> {
+    if (index < 0 || index >= this.tier.frameCount) return null;
+    if (this.frameBlobs[index]) return this.frameBlobs[index];
+    if (this.fetchingFlags[index]) return null;
+    this.fetchingFlags[index] = true;
 
-    const url = this.frameUrl(index);
     try {
-      const resp = await fetch(url);
+      const resp = await fetch(this.frameUrl(index));
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const blob = await resp.blob();
+      this.frameBlobs[index] = blob;
+      return blob;
+    } catch {
+      return null;
+    } finally {
+      this.fetchingFlags[index] = false;
+    }
+  }
 
+  private async decodeFrame(index: number, centerIdx: number): Promise<void> {
+    if (index < 0 || index >= this.tier.frameCount) return;
+    if (this.decodedFrames.has(index) || this.decodingFlags[index]) return;
+
+    let blob = this.frameBlobs[index];
+    if (!blob) {
+      blob = await this.fetchBlob(index);
+    }
+    if (!blob || this.decodedFrames.has(index)) return;
+
+    this.decodingFlags[index] = true;
+    try {
+      let asset: FrameAsset;
       if (typeof createImageBitmap === 'function') {
-        const bitmap = await createImageBitmap(blob);
-        this.frames[index] = bitmap;
+        asset = await createImageBitmap(blob);
       } else {
-        const img = await this.loadHtmlImage(URL.createObjectURL(blob));
-        this.frames[index] = img;
+        asset = await this.loadHtmlImage(URL.createObjectURL(blob));
+      }
+      this.decodedFrames.set(index, asset);
+      this.evictFarthest(centerIdx);
+
+      // If this frame is right where the user currently sits, repaint immediately
+      if (index === this.lastTargetIdx) {
+        this.lastDrawnKey = '';
+        this.drawAssetNow(asset, this.lastFocalX, this.lastScale, this.lastDriftX, this.lastDriftY);
       }
     } catch {
-      // Leave null; nearest loaded frame will cover cleanly
+      // Nearest loaded frame covers cleanly
     } finally {
-      this.loadingFlags[index] = false;
+      this.decodingFlags[index] = false;
+    }
+  }
+
+  private evictFarthest(centerIdx: number): void {
+    while (this.decodedFrames.size > this.maxDecodedCache) {
+      let farthestKey = -1;
+      let maxDist = -1;
+      for (const k of this.decodedFrames.keys()) {
+        const d = Math.abs(k - centerIdx);
+        if (d > maxDist) {
+          maxDist = d;
+          farthestKey = k;
+        }
+      }
+      if (farthestKey === -1) break;
+      const old = this.decodedFrames.get(farthestKey);
+      if (old && 'close' in old && typeof old.close === 'function') {
+        old.close();
+      }
+      this.decodedFrames.delete(farthestKey);
     }
   }
 
@@ -109,12 +167,11 @@ export class VideoScrubber {
   }
 
   /**
-   * Preloads Chapters 0 + 1 frames (or reduced-motion poster frames) before
-   * unlocking the headlight preloader.
+   * Preloads initial chapters (Ch 0..2) so scrubbing unlocks smoothly before
+   * streaming the rest progressively in the background.
    */
   async preloadBoot(onProgress: (pct: number) => void): Promise<void> {
     if (this.reducedMotion) {
-      // Load lightweight chapter posters only
       const chapters = SITE_CONFIG.chapters;
       let done = 0;
       await Promise.all(
@@ -138,25 +195,26 @@ export class VideoScrubber {
       return;
     }
 
-    // Chapters 0 + 1 cover 0.00s -> 1.95s
-    const bootEndRatio = Math.min(1, 2.0 / SITE_CONFIG.durationSec);
-    const bootCount = Math.max(12, Math.ceil(this.tier.frameCount * bootEndRatio));
-    let decoded = 0;
+    const initialEndSec = SITE_CONFIG.chapters[2]?.videoEnd ?? 3.0;
+    const bootEndRatio = Math.min(1, initialEndSec / SITE_CONFIG.durationSec);
+    const bootCount = Math.max(16, Math.ceil(this.tier.frameCount * bootEndRatio));
+    let loaded = 0;
 
     const queue = Array.from({ length: bootCount }, (_, i) => i);
     const workers = Array.from({ length: 6 }, async () => {
       while (queue.length > 0) {
         const idx = queue.shift();
         if (idx === undefined) break;
-        await this.fetchAndDecodeFrame(idx);
-        decoded++;
-        onProgress(Math.min(100, Math.round((decoded / bootCount) * 100)));
+        await this.fetchBlob(idx);
+        if (idx < this.maxDecodedCache) {
+          await this.decodeFrame(idx, 0);
+        }
+        loaded++;
+        onProgress(Math.min(100, Math.round((loaded / bootCount) * 100)));
       }
     });
 
     await Promise.all(workers);
-
-    // Stream remaining chapters progressively in the background
     this.startBackgroundPreload(bootCount);
   }
 
@@ -164,19 +222,21 @@ export class VideoScrubber {
     let cursor = startIndex;
     const worker = async () => {
       while (true) {
-        // Check if user jumped ahead — decode around priorityIndex first
         let nextIdx: number | null = null;
         if (this.priorityIndex > 0) {
-          for (let offset = 0; offset < 28; offset++) {
-            const probe = Math.min(this.tier.frameCount - 1, this.priorityIndex + offset);
-            if (!this.frames[probe] && !this.loadingFlags[probe]) {
+          for (let offset = -8; offset < 36; offset++) {
+            const probe = Math.max(0, Math.min(this.tier.frameCount - 1, this.priorityIndex + offset));
+            if (!this.frameBlobs[probe] && !this.fetchingFlags[probe]) {
               nextIdx = probe;
               break;
             }
           }
         }
         if (nextIdx === null) {
-          while (cursor < this.tier.frameCount && (this.frames[cursor] || this.loadingFlags[cursor])) {
+          while (
+            cursor < this.tier.frameCount &&
+            (this.frameBlobs[cursor] || this.fetchingFlags[cursor])
+          ) {
             cursor++;
           }
           if (cursor < this.tier.frameCount) {
@@ -184,7 +244,7 @@ export class VideoScrubber {
           }
         }
         if (nextIdx === null) break;
-        await this.fetchAndDecodeFrame(nextIdx);
+        await this.fetchBlob(nextIdx);
       }
     };
 
@@ -195,12 +255,30 @@ export class VideoScrubber {
 
   prioritizeTime(timeSec: number): void {
     const norm = Math.max(0, Math.min(1, timeSec / SITE_CONFIG.durationSec));
-    this.priorityIndex = Math.floor(norm * (this.tier.frameCount - 1));
+    const idx = Math.floor(norm * (this.tier.frameCount - 1));
+    this.priorityIndex = idx;
+    this.warmWindow(idx);
+  }
+
+  private warmWindow(centerIdx: number): void {
+    if (!this.decodedFrames.has(centerIdx)) {
+      void this.decodeFrame(centerIdx, centerIdx);
+    }
+    for (let offset = 1; offset <= this.decodeRadius; offset++) {
+      const fwd = centerIdx + offset;
+      const bwd = centerIdx - offset;
+      if (fwd < this.tier.frameCount && this.frameBlobs[fwd] && !this.decodedFrames.has(fwd)) {
+        void this.decodeFrame(fwd, centerIdx);
+      }
+      if (bwd >= 0 && this.frameBlobs[bwd] && !this.decodedFrames.has(bwd)) {
+        void this.decodeFrame(bwd, centerIdx);
+      }
+    }
   }
 
   private async initVideoEngine(onProgress: (pct: number) => void): Promise<void> {
     const video = document.createElement('video');
-    video.src = SITE_CONFIG.videoSources.scrub48fpsG1;
+    video.src = SITE_CONFIG.videoSources.conceptFilmMp4;
     video.muted = true;
     video.playsInline = true;
     video.preload = 'auto';
@@ -229,7 +307,6 @@ export class VideoScrubber {
       video.addEventListener(
         'error',
         () => {
-          // Graceful automatic fallback to progressive frames
           this.useVideoMode = false;
           this.videoEl = null;
           finish();
@@ -245,24 +322,22 @@ export class VideoScrubber {
     }
   }
 
-  /**
-   * Renders the current scrubbed video timestamp with sub-frame blending,
-   * focal-point crop, and subtle idle/velocity scale.
-   */
   render(
     timeSec: number,
     focalX: number,
     scaleMultiplier: number,
-    activeChapterIdx: number
+    activeChapterIdx: number,
+    driftX = 0,
+    driftY = 0
   ): void {
-    const { width, height } = this;
+    const clampedScale = Math.min(1.05, Math.max(1.0, scaleMultiplier));
 
     if (this.reducedMotion) {
       const poster =
         this.posterImages.get(activeChapterIdx) ||
         this.posterImages.get(0);
       if (poster) {
-        this.drawCover(poster, focalX, 1, 1);
+        this.drawCover(poster, focalX, 1, 0, 0);
       }
       return;
     }
@@ -272,36 +347,52 @@ export class VideoScrubber {
       if (Math.abs(this.videoEl.currentTime - target) > 0.008) {
         this.videoEl.currentTime = target;
       }
-      this.drawCover(this.videoEl, focalX, scaleMultiplier, 1);
+      this.drawCover(this.videoEl, focalX, clampedScale, driftX, driftY);
       return;
     }
 
     const norm = Math.max(0, Math.min(1, timeSec / SITE_CONFIG.durationSec));
-    const exactFrame = norm * (this.tier.frameCount - 1);
-    const idx = Math.round(exactFrame);
-    const frame = this.findNearestLoaded(idx);
+    const idx = Math.max(0, Math.min(this.tier.frameCount - 1, Math.round(norm * (this.tier.frameCount - 1))));
 
+    this.lastTargetIdx = idx;
+    this.lastFocalX = focalX;
+    this.lastScale = clampedScale;
+    this.lastDriftX = driftX;
+    this.lastDriftY = driftY;
+
+    this.warmWindow(idx);
+
+    const frame = this.findNearestDecoded(idx);
     if (!frame) return;
 
-    const drawKey = `${idx}:${focalX.toFixed(2)}:${scaleMultiplier.toFixed(4)}:${width}x${height}`;
+    const drawKey = `${idx}:${focalX.toFixed(2)}:${clampedScale.toFixed(4)}:${driftX.toFixed(2)}:${driftY.toFixed(2)}:${this.width}x${this.height}`;
     if (drawKey === this.lastDrawnKey) return;
     this.lastDrawnKey = drawKey;
 
+    this.drawAssetNow(frame, focalX, clampedScale, driftX, driftY);
+  }
+
+  private drawAssetNow(
+    frame: FrameAsset,
+    focalX: number,
+    scaleMultiplier: number,
+    driftX: number,
+    driftY: number
+  ): void {
     this.ctx.imageSmoothingEnabled = true;
     this.ctx.imageSmoothingQuality = 'high';
     this.ctx.globalAlpha = 1;
-    this.drawCover(frame, focalX, scaleMultiplier, 1);
+    this.drawCover(frame, focalX, scaleMultiplier, driftX, driftY);
   }
 
-  private findNearestLoaded(targetIdx: number): FrameAsset | null {
-    if (this.frames[targetIdx]) return this.frames[targetIdx];
+  private findNearestDecoded(targetIdx: number): FrameAsset | null {
+    const exact = this.decodedFrames.get(targetIdx);
+    if (exact) return exact;
     for (let d = 1; d < this.tier.frameCount; d++) {
-      if (targetIdx - d >= 0 && this.frames[targetIdx - d]) {
-        return this.frames[targetIdx - d];
-      }
-      if (targetIdx + d < this.tier.frameCount && this.frames[targetIdx + d]) {
-        return this.frames[targetIdx + d];
-      }
+      const bwd = this.decodedFrames.get(targetIdx - d);
+      if (bwd) return bwd;
+      const fwd = this.decodedFrames.get(targetIdx + d);
+      if (fwd) return fwd;
     }
     return null;
   }
@@ -310,15 +401,16 @@ export class VideoScrubber {
     source: FrameAsset | HTMLVideoElement,
     focalX: number,
     scaleMultiplier: number,
-    alpha: number
+    driftX: number,
+    driftY: number
   ): void {
     const srcW =
       source instanceof HTMLVideoElement
-        ? source.videoWidth || 1280
+        ? source.videoWidth || 1920
         : source.width;
     const srcH =
       source instanceof HTMLVideoElement
-        ? source.videoHeight || 720
+        ? source.videoHeight || 1080
         : source.height;
     if (!srcW || !srcH) return;
 
@@ -327,20 +419,16 @@ export class VideoScrubber {
 
     if (isPortraitMobile) {
       // Frame the upper-middle cinema band so the entire train stays visible above the bottom glass sheet
-      const cinemaHeight = height * 0.58;
+      const cinemaHeight = height * 0.56;
       const scale = Math.max(width / srcW, cinemaHeight / srcH) * scaleMultiplier;
       const drawW = srcW * scale;
       const drawH = srcH * scale;
       const overflowX = Math.max(0, drawW - width);
-      const offsetX = -overflowX * focalX;
-      const offsetY = height * 0.08 + (cinemaHeight - drawH) * 0.5;
+      const offsetX = Math.min(0, Math.max(-overflowX, -overflowX * focalX + driftX));
+      const offsetY = height * 0.09 + (cinemaHeight - drawH) * 0.5;
 
       ctx.fillStyle = '#020a11';
-      if (alpha >= 0.99) {
-        ctx.fillRect(0, 0, width, height);
-      } else {
-        ctx.globalAlpha = alpha;
-      }
+      ctx.fillRect(0, 0, width, height);
       ctx.drawImage(source, offsetX, offsetY, drawW, drawH);
       return;
     }
@@ -351,10 +439,9 @@ export class VideoScrubber {
 
     const overflowX = Math.max(0, drawW - width);
     const overflowY = Math.max(0, drawH - height);
-    const offsetX = -overflowX * focalX;
-    const offsetY = -overflowY * 0.5;
+    const offsetX = Math.min(0, Math.max(-overflowX, -overflowX * focalX + driftX));
+    const offsetY = Math.min(0, Math.max(-overflowY, -overflowY * 0.5 + driftY));
 
-    if (alpha < 1) ctx.globalAlpha = alpha;
     ctx.drawImage(source, offsetX, offsetY, drawW, drawH);
   }
 }
