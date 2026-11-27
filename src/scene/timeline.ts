@@ -46,18 +46,16 @@ function applyDwellCurve(t: number, dwell: number): number {
   return t + (d * Math.sin(2 * Math.PI * t)) / (2 * Math.PI);
 }
 
-/** Deterministic envelope: keeps active chapter card visible across ~95% of its window */
+/** Deterministic envelope: keeps active chapter card visible with zero blank dead zones */
 function computeCardEnvelope(localT: number, index: number, totalChapters: number): number {
   if (index === 0) {
-    // Hero starts fully visible at 0 and exits cleanly near boundary
-    return localT < 0.88 ? 1 : 1 - smoothstep(0.88, 0.99, localT);
+    return localT < 0.9 ? 1 : 1 - smoothstep(0.9, 0.995, localT);
   }
   if (index === totalChapters - 1) {
-    // Final chapter enters cleanly and remains visible through the end
-    return smoothstep(0.01, 0.08, localT);
+    return smoothstep(-0.01, 0.06, localT);
   }
-  const enter = smoothstep(0.01, 0.08, localT);
-  const exit = 1 - smoothstep(0.88, 0.99, localT);
+  const enter = smoothstep(-0.01, 0.06, localT);
+  const exit = 1 - smoothstep(0.9, 0.995, localT);
   return Math.min(enter, exit);
 }
 

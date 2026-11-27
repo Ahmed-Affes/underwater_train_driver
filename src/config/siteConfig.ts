@@ -149,11 +149,11 @@ export const SITE_CONFIG: SiteConfig = {
   tiers: {
     desktop: {
       id: 'desktop',
-      frameCount: 480,
-      fps: 24,
+      frameCount: 1196,
+      fps: 60,
       width: 1920,
       height: 1080,
-      pattern: 'assets/frames/desktop/f_{index}.webp?v=4k-fr-1',
+      pattern: 'assets/frames/desktop/f_{index}.webp?v=60fps-1',
     },
     tablet: {
       id: 'tablet',

@@ -27,7 +27,7 @@ export class VideoScrubber {
   private decodingFlags: boolean[] = [];
   private decodeQueue: number[] = [];
   private activeDecodes = 0;
-  private readonly maxConcurrentDecodes = 6;
+  private maxConcurrentDecodes = 6;
 
   private posterImages: Map<number, HTMLImageElement> = new Map();
   private useVideoMode: boolean;
@@ -51,8 +51,9 @@ export class VideoScrubber {
     this.reducedMotion = reducedMotion;
     this.tier = this.selectTier();
     this.useVideoMode = !reducedMotion && SITE_CONFIG.playbackEngine === 'video';
+    this.maxConcurrentDecodes = this.tier.id === 'desktop' ? 8 : 6;
     this.maxDecodedCache =
-      this.tier.id === 'mobile' ? 110 : this.tier.id === 'tablet' ? 160 : 240;
+      this.tier.id === 'mobile' ? 110 : this.tier.id === 'tablet' ? 160 : 300;
 
     this.frameBlobs = new Array(this.tier.frameCount).fill(null);
     this.fetchingFlags = new Array(this.tier.frameCount).fill(false);
@@ -64,7 +65,7 @@ export class VideoScrubber {
   private selectTier(): TierSpec {
     const w = window.innerWidth;
     if (w < 768) return SITE_CONFIG.tiers.mobile;
-    if (w < 1200) return SITE_CONFIG.tiers.tablet;
+    if (w < 1024) return SITE_CONFIG.tiers.tablet;
     return SITE_CONFIG.tiers.desktop;
   }
 
@@ -228,12 +229,12 @@ export class VideoScrubber {
       return;
     }
 
-    // Boot frames: Chapters 0 + 1 + start of 2 (first 2.2s -> ~53 frames)
-    const bootCount = Math.max(24, Math.ceil((2.2 / SITE_CONFIG.durationSec) * this.tier.frameCount));
+    // Boot frames: first 1.5s (~90 frames at 60fps desktop) for fast start + immediate preload of rest
+    const bootCount = Math.max(24, Math.ceil((1.5 / SITE_CONFIG.durationSec) * this.tier.frameCount));
     let loaded = 0;
 
     const queue = Array.from({ length: bootCount }, (_, i) => i);
-    const workers = Array.from({ length: 6 }, async () => {
+    const workers = Array.from({ length: 8 }, async () => {
       while (queue.length > 0) {
         const idx = queue.shift();
         if (idx === undefined) break;
@@ -252,11 +253,13 @@ export class VideoScrubber {
 
   private startBackgroundPreload(startIndex: number): void {
     let cursor = startIndex;
+    const aheadSpan = this.tier.id === 'desktop' ? 72 : 36;
+    const fetchCount = this.tier.id === 'desktop' ? 6 : 4;
     const worker = async () => {
       while (true) {
         let nextIdx: number | null = null;
         if (this.priorityIndex > 0) {
-          for (let offset = -4; offset < 28; offset++) {
+          for (let offset = -8; offset < aheadSpan; offset++) {
             const probe = Math.max(
               0,
               Math.min(this.tier.frameCount - 1, this.priorityIndex + offset)
@@ -280,13 +283,13 @@ export class VideoScrubber {
         }
         if (nextIdx === null) break;
         const blob = await this.fetchBlob(nextIdx);
-        if (blob && Math.abs(nextIdx - this.lastTargetIdx) <= 48) {
+        if (blob && Math.abs(nextIdx - this.lastTargetIdx) <= aheadSpan) {
           this.enqueueDecode(nextIdx);
         }
       }
     };
 
-    for (let w = 0; w < 4; w++) {
+    for (let w = 0; w < fetchCount; w++) {
       void worker();
     }
   }
@@ -306,10 +309,11 @@ export class VideoScrubber {
   }
 
   private warmWindow(centerIdx: number): void {
+    const radius = this.tier.id === 'desktop' ? 45 : 28;
     if (!this.decodedFrames.has(centerIdx) && this.frameBlobs[centerIdx]) {
       this.enqueueDecode(centerIdx);
     }
-    for (let offset = 1; offset <= 28; offset++) {
+    for (let offset = 1; offset <= radius; offset++) {
       const fwd = centerIdx + offset;
       const bwd = centerIdx - offset;
       if (fwd < this.tier.frameCount && this.frameBlobs[fwd] && !this.decodedFrames.has(fwd)) {
